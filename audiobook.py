@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import json
 import os
+import sys
 from pynput import mouse, keyboard
 from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, KeyCode, Controller as KeyboardController, Listener as KeyboardListener
@@ -13,6 +14,15 @@ import cv2
 import numpy as np
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import random
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 class AudioBook:
     def __init__(self, root):
@@ -44,7 +54,7 @@ class AudioBook:
         
         # Load magma texture (original psychedelic version)
         try:
-            magma_img = Image.open('magma_background.jpg')
+            magma_img = Image.open(resource_path('magma_background.jpg'))
             magma_img = magma_img.resize((900, 1050), Image.Resampling.LANCZOS)
             # Keep original psychedelic colors - just darken slightly for contrast
             magma_img = Image.eval(magma_img, lambda x: int(x * 0.6))
@@ -55,7 +65,7 @@ class AudioBook:
         
         # Load power icon
         try:
-            power_img = Image.open('power_icon.png')
+            power_img = Image.open(resource_path('power_icon.png'))
             power_img = power_img.resize((32, 32), Image.Resampling.LANCZOS)
             self.power_icon = ImageTk.PhotoImage(power_img)
         except Exception as e:
@@ -64,7 +74,7 @@ class AudioBook:
         
         # Load fire icon
         try:
-            fire_img = Image.open('fire_icon.png')
+            fire_img = Image.open(resource_path('fire_icon.png'))
             fire_img = fire_img.resize((24, 24), Image.Resampling.LANCZOS)
             self.fire_icon = ImageTk.PhotoImage(fire_img)
         except Exception as e:
@@ -73,7 +83,7 @@ class AudioBook:
         
         # Load trophy icon
         try:
-            trophy_img = Image.open('trophy_icon.png')
+            trophy_img = Image.open(resource_path('trophy_icon.png'))
             trophy_img = trophy_img.resize((24, 24), Image.Resampling.LANCZOS)
             self.trophy_icon = ImageTk.PhotoImage(trophy_img)
         except Exception as e:
@@ -82,7 +92,7 @@ class AudioBook:
         
         # Load sword icon
         try:
-            sword_img = Image.open('sword_icon.png')
+            sword_img = Image.open(resource_path('sword_icon.png'))
             sword_img = sword_img.resize((20, 20), Image.Resampling.LANCZOS)
             self.sword_icon = ImageTk.PhotoImage(sword_img)
         except Exception as e:
@@ -91,7 +101,7 @@ class AudioBook:
         
         # Load location pin icon (for record positions button)
         try:
-            location_img = Image.open('location_icon.png')
+            location_img = Image.open(resource_path('location_icon.png'))
             location_img = location_img.resize((20, 20), Image.Resampling.LANCZOS)
             self.location_icon = ImageTk.PhotoImage(location_img)
         except Exception as e:
@@ -100,7 +110,7 @@ class AudioBook:
         
         # Load target/crosshair icon (for auto-target button)
         try:
-            target_img = Image.open('target_icon.png')
+            target_img = Image.open(resource_path('target_icon.png'))
             target_img = target_img.resize((32, 32), Image.Resampling.LANCZOS)
             self.target_icon = ImageTk.PhotoImage(target_img)
         except Exception as e:
@@ -109,7 +119,7 @@ class AudioBook:
         
         # Load checkbox icons (green ON, red OFF)
         try:
-            checkbox_on_img = Image.open('checkbox_on.png')
+            checkbox_on_img = Image.open(resource_path('checkbox_on.png'))
             checkbox_on_img = checkbox_on_img.resize((20, 20), Image.Resampling.LANCZOS)
             self.checkbox_on = ImageTk.PhotoImage(checkbox_on_img)
         except Exception as e:
@@ -117,7 +127,7 @@ class AudioBook:
             self.checkbox_on = None
         
         try:
-            checkbox_off_img = Image.open('checkbox_off.png')
+            checkbox_off_img = Image.open(resource_path('checkbox_off.png'))
             checkbox_off_img = checkbox_off_img.resize((20, 20), Image.Resampling.LANCZOS)
             self.checkbox_off = ImageTk.PhotoImage(checkbox_off_img)
         except Exception as e:
@@ -340,7 +350,7 @@ class AudioBook:
         
         # Load SD icon
         try:
-            sd_img = Image.open('sd_rune_icon.png')
+            sd_img = Image.open(resource_path('sd_rune_icon.png'))
             sd_img = sd_img.resize((24, 24), Image.Resampling.LANCZOS)
             self.sd_icon_photo = ImageTk.PhotoImage(sd_img)
         except:
@@ -397,7 +407,7 @@ class AudioBook:
         
         # Load EXPLO icon
         try:
-            explo_img = Image.open('explo_rune_icon.png')
+            explo_img = Image.open(resource_path('explo_rune_icon.png'))
             explo_img = explo_img.resize((24, 24), Image.Resampling.LANCZOS)
             self.explo_icon_photo = ImageTk.PhotoImage(explo_img)
         except:
@@ -454,7 +464,7 @@ class AudioBook:
         
         # Load UH icon
         try:
-            uh_img = Image.open('uh_rune_icon.png')
+            uh_img = Image.open(resource_path('uh_rune_icon.png'))
             uh_img = uh_img.resize((24, 24), Image.Resampling.LANCZOS)
             self.uh_icon_photo = ImageTk.PhotoImage(uh_img)
         except:
@@ -511,7 +521,7 @@ class AudioBook:
         
         # Load MANA icon
         try:
-            mana_img = Image.open('mana_icon.png')
+            mana_img = Image.open(resource_path('mana_icon.png'))
             mana_img = mana_img.resize((24, 24), Image.Resampling.LANCZOS)
             self.mana_icon_photo = ImageTk.PhotoImage(mana_img)
         except:
