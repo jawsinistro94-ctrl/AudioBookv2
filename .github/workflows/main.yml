@@ -1,0 +1,32 @@
+name: Build AudioBook EXE
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install pyautogui pynput mss opencv-python numpy Pillow
+    
+    - name: Build EXE
+      run: |
+        pyinstaller --onefile --windowed --name "AudioBook" --add-data "magma_background.jpg;." --add-data "sd_rune_icon.png;." --add-data "explo_rune_icon.png;." --add-data "uh_rune_icon.png;." --add-data "mana_icon.png;." --add-data "power_icon.png;." --add-data "fire_icon.png;." --add-data "trophy_icon.png;." --add-data "sword_icon.png;." --add-data "location_icon.png;." --add-data "target_icon.png;." --add-data "checkbox_on.png;." --add-data "checkbox_off.png;." audiobook.py
+    
+    - name: Upload EXE
+      uses: actions/upload-artifact@v4
+      with:
+        name: AudioBook-Windows
+        path: dist/AudioBook.exe
