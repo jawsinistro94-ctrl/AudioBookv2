@@ -1,0 +1,157 @@
+============================================
+  GUIA: CALIBRAÇÃO DO AUTO-TARGET
+============================================
+
+O que é a Calibração?
+---------------------
+A calibração ensina o AudioBook a reconhecer EXATAMENTE
+a cor do quadrado vermelho do seu PC. Cada monitor e 
+placa de vídeo mostra cores um pouco diferentes, então 
+a calibração garante 100% de precisão!
+
+
+Por que preciso calibrar?
+--------------------------
+✅ Evita clicar em tochas vermelhas
+✅ Evita clicar em decorações de parede
+✅ Evita clicar em outros elementos vermelhos
+✅ Detecta APENAS o outline de ataque do Tibia
+✅ Funciona perfeitamente no SEU PC específico
+
+
+Quando calibrar?
+----------------
+✔️ PRIMEIRA VEZ que usar auto-target
+✔️ Se mudar de PC ou monitor
+✔️ Se o auto-target começar a clicar errado
+✔️ Se mudou configurações de vídeo do Windows/Tibia
+
+
+Como calibrar (SUPER FÁCIL!)
+-----------------------------
+
+1. Abra o AudioBook
+
+2. Clique no botão "🎯 Calibrate Auto-Target"
+
+3. Abra o Tibia e CLIQUE EM UM MONSTRO
+   (para aparecer o quadrado vermelho)
+
+4. Aperte Win+Shift+S (Snipping Tool)
+   Selecione a área ao redor do quadrado
+   → PODE incluir o monstro/fundo!
+   → Não precisa ser perfeito!
+   → Só precisa ter o outline vermelho visível!
+
+5. Salve o print (Desktop, Downloads, etc.)
+
+6. No AudioBook, clique em "📁 Carregar Imagem"
+
+7. Selecione o print que você salvou
+
+8. PRONTO! ✅
+   O AudioBook vai:
+   - Detectar automaticamente o outline
+   - Ignorar o monstro e outros objetos
+   - Calcular a cor HSV exata
+   - Salvar a configuração
+
+
+O que o AudioBook faz?
+----------------------
+1. Analisa a imagem que você enviou
+2. Detecta TODOS os pixels vermelhos
+3. Identifica o contorno retangular (outline)
+4. Ignora pixels de fora (tochas, decorações)
+5. Usa APENAS os pixels da BORDA do outline
+6. Calcula a cor média (mediana HSV)
+7. Salva no arquivo de configuração
+
+
+Dicas importantes:
+------------------
+💡 Tire um print LARGO mostrando o monstro todo
+💡 Não precisa cortar perfeitamente
+💡 O quadrado vermelho TEM QUE estar na imagem
+💡 Pode ter outras coisas vermelhas - serão ignoradas
+💡 Quanto mais claro o print, melhor
+💡 Evite prints muito escuros ou com sombras
+
+
+Testando a calibração:
+-----------------------
+1. Crie uma hotkey OFFENSIVE
+2. Habilite "Auto-target"
+3. Grave apenas a posição da RUNA
+4. No jogo, pressione a hotkey
+5. O AudioBook deve:
+   ✅ Clicar na runa
+   ✅ Encontrar o outline automaticamente
+   ✅ Clicar no centro do monstro
+   ✅ Ignorar tochas e decorações
+
+
+Se não funcionar:
+-----------------
+❌ Auto-target não detecta o monstro
+   → Tire outro print e calibre novamente
+   → Certifique-se que o outline está BEM visível
+   → Evite prints com muita sombra
+
+❌ Clica em lugares errados
+   → Calibre novamente com print de melhor qualidade
+   → Use um print com APENAS 1 monstro na tela
+
+❌ Clica em tochas/decorações
+   → A calibração deve ter falhado
+   → Tire um print LIMPO mostrando só o outline
+   → Calibre de novo
+
+
+============================================
+  DETALHES TÉCNICOS (OPCIONAL)
+============================================
+
+O que é HSV?
+- Hue (Matiz): Qual cor (0-180)
+- Saturation (Saturação): Intensidade (0-255)
+- Value (Brilho): Claridade (0-255)
+
+O AudioBook calcula a mediana e tolerância:
+- Mediana: Valor central dos pixels do outline
+- Tolerância: 2x desvio padrão (95% de cobertura)
+
+Arquivo de configuração:
+- audiobook_config.json
+- Salva automaticamente após calibração
+- Contém valores HSV personalizados
+- Carrega automaticamente ao abrir o AudioBook
+
+
+============================================
+  PERGUNTAS FREQUENTES
+============================================
+
+P: Precisa calibrar toda vez?
+R: NÃO! Apenas 1 vez por PC.
+
+P: Se mudar o zoom do Tibia, precisa calibrar de novo?
+R: NÃO! A cor é a mesma independente do zoom.
+
+P: Funciona com Tibia fullscreen ou windowed?
+R: Funciona em AMBOS! A cor é a mesma.
+
+P: Posso usar a mesma calibração em outro PC?
+R: NÃO recomendado. Cada PC tem cores diferentes.
+
+P: O que acontece se não calibrar?
+R: O auto-target usa valores genéricos e pode:
+   - Não detectar alguns outlines
+   - Clicar em objetos errados
+   - Ter menor precisão
+
+P: Quanto tempo leva?
+R: Menos de 30 segundos! É super rápido!
+
+P: Posso calibrar várias vezes?
+R: SIM! Cada calibração sobrescreve a anterior.

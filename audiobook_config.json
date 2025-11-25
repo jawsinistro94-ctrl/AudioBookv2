@@ -1,0 +1,129 @@
+{
+  "current_profile": "Padr\u00e3o",
+  "profiles": {
+    "Padr\u00e3o": {
+      "hotkeys": [
+        {
+          "hotkey": [
+            "f5"
+          ],
+          "clicks": [
+            {
+              "x": 448,
+              "y": 561
+            },
+            {
+              "x": 370,
+              "y": 622
+            }
+          ],
+          "delay": 0,
+          "type": "offensive",
+          "auto_target": false
+        }
+      ],
+      "quick_configs": {
+        "auto_sd": {
+          "enabled": true,
+          "hotkey": "F12",
+          "auto_target": true,
+          "delay": 10,
+          "clicks": []
+        },
+        "auto_uh": {
+          "enabled": false,
+          "hotkey": "F2",
+          "delay": 10,
+          "clicks": []
+        },
+        "auto_mana": {
+          "enabled": false,
+          "hotkey": "F3",
+          "delay": 10,
+          "clicks": []
+        },
+        "auto_explo": {
+          "enabled": true,
+          "hotkey": "F4",
+          "auto_target": true,
+          "delay": 10,
+          "clicks": [
+            {
+              "x": 178,
+              "y": 266
+            }
+          ]
+        }
+      },
+      "instant_movement": false
+    },
+    "jaw": {
+      "hotkeys": [
+        {
+          "hotkey": [
+            "f5"
+          ],
+          "clicks": [
+            {
+              "x": 448,
+              "y": 561
+            },
+            {
+              "x": 370,
+              "y": 622
+            }
+          ],
+          "delay": 0,
+          "type": "offensive",
+          "auto_target": false
+        }
+      ],
+      "quick_configs": {
+        "auto_sd": {
+          "enabled": true,
+          "hotkey": "F12",
+          "auto_target": true,
+          "delay": 10,
+          "clicks": []
+        },
+        "auto_uh": {
+          "enabled": false,
+          "hotkey": "F2",
+          "delay": 10,
+          "clicks": []
+        },
+        "auto_mana": {
+          "enabled": false,
+          "hotkey": "F3",
+          "delay": 10,
+          "clicks": []
+        },
+        "auto_explo": {
+          "enabled": true,
+          "hotkey": "F4",
+          "auto_target": true,
+          "delay": 10,
+          "clicks": [
+            {
+              "x": 178,
+              "y": 266
+            }
+          ]
+        }
+      },
+      "instant_movement": false
+    }
+  },
+  "hsv_config": {
+    "lower_h1": 0,
+    "upper_h1": 10,
+    "lower_h2": 170,
+    "upper_h2": 180,
+    "lower_s": 100,
+    "upper_s": 255,
+    "lower_v": 100,
+    "upper_v": 255,
+    "calibrated": false,
+    "template": null
+  }
+}
