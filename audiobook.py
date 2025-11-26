@@ -1878,6 +1878,15 @@ class AudioBook:
             self.status_label.config(text="OFF", foreground=self.colors['status_off'])
             self.toggle_btn.config(bg=self.colors['status_off'], activebackground=self.colors['button_destructive'])
     
+    def pause_all(self):
+        """Global pause triggered by Alt+F12 - forces system to OFF"""
+        if self.active:  # Only pause if currently active
+            self.active = False
+            self.status_label.config(text="OFF", foreground=self.colors['status_off'])
+            self.toggle_btn.config(bg=self.colors['status_off'], activebackground=self.colors['button_destructive'])
+            # Show visual feedback
+            self.root.after(0, lambda: messagebox.showinfo("Sistema Pausado", "Todas as automações foram pausadas via Alt+F12"))
+    
     def refresh_tree(self):
         # Clear tree
         for item in self.tree.get_children():
@@ -3133,6 +3142,23 @@ Pressione 'Iniciar' quando estiver pronto!"""
         def on_press(key):
             # Update heartbeat on every keypress
             self.listener_heartbeat = time.time()
+            
+            # === GLOBAL PAUSE HOTKEY: Alt+F12 ===
+            # This works even when automations are running
+            try:
+                is_alt = 'alt' in self.currently_pressed
+                is_f12 = False
+                if hasattr(key, 'name') and key.name == 'f12':
+                    is_f12 = True
+                elif hasattr(key, 'vk') and key.vk == 123:  # F12 virtual key code
+                    is_f12 = True
+                
+                if is_alt and is_f12:
+                    # Pause all automations via Alt+F12
+                    self.root.after(0, self.pause_all)
+                    return  # Don't process any other hotkeys
+            except:
+                pass
             
             if not self.active:
                 return
