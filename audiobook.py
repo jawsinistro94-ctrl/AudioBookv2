@@ -680,40 +680,178 @@ class AudioBook:
         self.rm_delay_label.pack(side=tk.LEFT, padx=5)
         self.rm_delay.trace('w', lambda *args: self.rm_delay_label.config(text=f"{self.rm_delay.get()}ms"))
         
-        # Row 4: Pause hotkey
+        # Row 4: Potions per cycle (configurable)
         rm_row4 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
         rm_row4.pack(fill=tk.X, pady=4, padx=8)
         
-        tk.Label(rm_row4, text="Pausar:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+        tk.Label(rm_row4, text="Potions:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
                 bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
         
-        self.rm_pause_btn = tk.Button(rm_row4, textvariable=self.rm_pause_hotkey, width=6,
+        self.rm_potions_count = tk.IntVar(value=3)
+        potions_spinbox = tk.Spinbox(rm_row4, from_=1, to=20, textvariable=self.rm_potions_count,
+                width=4, font=('Consolas', 11, 'bold'), bg=self.colors['bg_primary'], 
+                fg=self.colors['status_on'], buttonbackground=self.colors['button_default'],
+                relief=tk.SUNKEN, borderwidth=2, command=self.update_cycle_display)
+        potions_spinbox.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(rm_row4, text="por ciclo", font=('Consolas', 9),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=5)
+        
+        # Row 5: Casts per cycle (configurable)
+        rm_row5 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
+        rm_row5.pack(fill=tk.X, pady=4, padx=8)
+        
+        tk.Label(rm_row5, text="Casts:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
+        
+        self.rm_casts_count = tk.IntVar(value=1)
+        casts_spinbox = tk.Spinbox(rm_row5, from_=1, to=20, textvariable=self.rm_casts_count,
+                width=4, font=('Consolas', 11, 'bold'), bg=self.colors['bg_primary'], 
+                fg=self.colors['status_on'], buttonbackground=self.colors['button_default'],
+                relief=tk.SUNKEN, borderwidth=2, command=self.update_cycle_display)
+        casts_spinbox.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(rm_row5, text="por ciclo", font=('Consolas', 9),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=5)
+        
+        # Row 6: Pause hotkey
+        rm_row6 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
+        rm_row6.pack(fill=tk.X, pady=4, padx=8)
+        
+        tk.Label(rm_row6, text="Pausar:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
+        
+        self.rm_pause_btn = tk.Button(rm_row6, textvariable=self.rm_pause_hotkey, width=6,
                   command=self.change_runemaker_pause_hotkey,
                   bg=self.colors['button_default'], fg='#FFFFFF', font=('Consolas', 10, 'bold'),
                   relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'])
         self.rm_pause_btn.pack(side=tk.LEFT, padx=5)
         
-        self.rm_pause_status = tk.Label(rm_row4, text="", font=('Consolas', 9, 'bold'), width=12,
+        self.rm_pause_status = tk.Label(rm_row6, text="", font=('Consolas', 9, 'bold'), width=12,
                 bg=self.colors['bg_inset'], fg=self.colors['status_off'])
         self.rm_pause_status.pack(side=tk.LEFT, padx=5)
         
-        tk.Label(rm_row4, text="(pressione pra pausar/continuar)", font=('Consolas', 8),
+        tk.Label(rm_row6, text="(pressione pra pausar/continuar)", font=('Consolas', 8),
                 bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=5)
         
-        # Cycle info box
+        # Cycle info box (dynamic display)
         rm_info_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_primary'], relief=tk.GROOVE, borderwidth=2)
         rm_info_frame.pack(fill=tk.X, pady=5, padx=3)
         
-        tk.Label(rm_info_frame, text="Ciclo: 2x(3 pot + 1 spell)  -->  1x(3 pot + 3 spell)  -->  repete", 
-                font=('Consolas', 9), bg=self.colors['bg_primary'], fg=self.colors['text_body'], pady=3).pack()
+        self.rm_cycle_info = tk.Label(rm_info_frame, text="Ciclo: 3 potions + 1 cast -> repete", 
+                font=('Consolas', 9), bg=self.colors['bg_primary'], fg=self.colors['text_body'], pady=3)
+        self.rm_cycle_info.pack()
         
         self.rm_cycle_label = tk.Label(rm_info_frame, text="", font=('Consolas', 10, 'bold'),
                 bg=self.colors['bg_primary'], fg=self.colors['status_on'])
         self.rm_cycle_label.pack(pady=2)
         
+        # ========== HYPER GRAB CHRONICLES SECTION ==========
+        hypergrab_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=3)
+        hypergrab_outer.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+        
+        hypergrab_border = tk.Frame(hypergrab_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
+        hypergrab_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        
+        # Title bar
+        hg_title_frame = tk.Frame(hypergrab_border, bg=self.colors['border_highlight'])
+        hg_title_frame.pack(fill=tk.X, pady=5)
+        
+        tk.Label(hg_title_frame, text="📖", font=('Arial', 14),
+                bg=self.colors['border_highlight']).pack(side=tk.LEFT, padx=8)
+        
+        tk.Label(hg_title_frame, text="Hyper Grab Chronicles", 
+                bg=self.colors['border_highlight'], fg=self.colors['text_header'],
+                font=('Georgia', 12, 'bold italic')).pack(side=tk.LEFT)
+        
+        tk.Label(hg_title_frame, text="📖", font=('Arial', 14),
+                bg=self.colors['border_highlight']).pack(side=tk.RIGHT, padx=8)
+        
+        hypergrab_frame = tk.Frame(hypergrab_border, bg=self.colors['bg_secondary'], padx=8, pady=8)
+        hypergrab_frame.pack(fill=tk.X, padx=3, pady=3)
+        
+        # Hyper Grab enabled toggle
+        self.hypergrab_enabled = tk.BooleanVar(value=False)
+        self.hypergrab_hotkey = tk.StringVar(value="F5")
+        self.hypergrab_bp_pos = None  # Will store backpack slot position
+        
+        hg_toggle_frame = tk.Frame(hypergrab_frame, bg=self.colors['bg_secondary'])
+        hg_toggle_frame.pack(fill=tk.X, pady=5)
+        
+        if self.checkbox_on and self.checkbox_off:
+            self.hg_enabled_btn = tk.Checkbutton(hg_toggle_frame, variable=self.hypergrab_enabled,
+                          command=self.toggle_hypergrab,
+                          image=self.checkbox_on if self.hypergrab_enabled.get() else self.checkbox_off,
+                          bg=self.colors['bg_secondary'], activebackground=self.colors['bg_secondary'],
+                          selectcolor=self.colors['bg_secondary'],
+                          indicatoron=False, borderwidth=0, relief=tk.FLAT)
+            self.hg_enabled_btn.pack(side=tk.LEFT, padx=5)
+        else:
+            tk.Checkbutton(hg_toggle_frame, variable=self.hypergrab_enabled, command=self.toggle_hypergrab,
+                          bg=self.colors['bg_secondary'], activebackground=self.colors['bg_inset'], 
+                          selectcolor=self.colors['focus_glow']).pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(hg_toggle_frame, text="Ativar Hyper Grab", font=('Georgia', 10, 'bold'),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_header']).pack(side=tk.LEFT, padx=5)
+        
+        self.hg_status_label = tk.Label(hg_toggle_frame, text="[OFF]", font=('Consolas', 10, 'bold'),
+                bg=self.colors['bg_secondary'], fg=self.colors['status_off'])
+        self.hg_status_label.pack(side=tk.LEFT, padx=15)
+        
+        # Config grid frame
+        hg_config_frame = tk.Frame(hypergrab_frame, bg=self.colors['bg_inset'], relief=tk.SUNKEN, borderwidth=1)
+        hg_config_frame.pack(fill=tk.X, pady=5, padx=3)
+        
+        # Row 1: Hotkey
+        hg_row1 = tk.Frame(hg_config_frame, bg=self.colors['bg_inset'])
+        hg_row1.pack(fill=tk.X, pady=4, padx=8)
+        
+        tk.Label(hg_row1, text="Hotkey:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
+        
+        self.hg_hotkey_btn = tk.Button(hg_row1, textvariable=self.hypergrab_hotkey, width=6,
+                  command=self.change_hypergrab_hotkey,
+                  bg=self.colors['selection'], fg='#FFFFFF', font=('Consolas', 10, 'bold'),
+                  relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'])
+        self.hg_hotkey_btn.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(hg_row1, text="(arrasta item do mouse pra BP)", font=('Consolas', 8),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=10)
+        
+        # Row 2: Backpack slot position
+        hg_row2 = tk.Frame(hg_config_frame, bg=self.colors['bg_inset'])
+        hg_row2.pack(fill=tk.X, pady=4, padx=8)
+        
+        tk.Label(hg_row2, text="Slot BP:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
+        
+        if self.location_icon:
+            tk.Button(hg_row2, image=self.location_icon, command=self.record_hypergrab_bp,
+                     bg=self.colors['button_default'], relief=tk.RAISED, borderwidth=2, 
+                     activebackground=self.colors['button_hover'], padx=4, pady=2).pack(side=tk.LEFT, padx=5)
+        else:
+            tk.Button(hg_row2, text="Gravar", command=self.record_hypergrab_bp,
+                     bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Arial', 9, 'bold'),
+                     relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'],
+                     padx=8, pady=2).pack(side=tk.LEFT, padx=5)
+        
+        self.hg_bp_status = tk.Label(hg_row2, text="[Nao gravado]", font=('Consolas', 9, 'bold'), width=18,
+                bg=self.colors['bg_inset'], fg=self.colors['text_subdued'])
+        self.hg_bp_status.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(hg_row2, text="(slot superior direito da BP)", font=('Consolas', 8),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=5)
+        
+        # Info box
+        hg_info_frame = tk.Frame(hypergrab_frame, bg=self.colors['bg_primary'], relief=tk.GROOVE, borderwidth=2)
+        hg_info_frame.pack(fill=tk.X, pady=5, padx=3)
+        
+        tk.Label(hg_info_frame, text="Aperte hotkey -> item sob o mouse vai INSTANTANEAMENTE pra BP", 
+                font=('Consolas', 9), bg=self.colors['bg_primary'], fg=self.colors['text_body'], pady=3).pack()
+        
         # Movement mode toggle
         movement_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        movement_frame.grid(row=5, column=0, columnspan=3, pady=4)
+        movement_frame.grid(row=6, column=0, columnspan=3, pady=4)
         
         self.instant_movement = tk.BooleanVar(value=False)  # False = gradual, True = instant
         
@@ -731,7 +869,7 @@ class AudioBook:
         
         # Custom hotkey management buttons
         button_frame = tk.Frame(main_frame)
-        button_frame.grid(row=6, column=0, columnspan=3, pady=6)
+        button_frame.grid(row=7, column=0, columnspan=3, pady=6)
         
         tk.Button(button_frame, text="[+] Custom Hotkey", command=self.add_hotkey_dialog,
                  bg=self.colors['selection'], fg=self.colors['text_header'], font=('Georgia', 10, 'bold'),
@@ -763,6 +901,9 @@ class AudioBook:
         
         # Load runemaker config
         self.load_runemaker_config()
+        
+        # Load hypergrab config
+        self.load_hypergrab_config()
         
         self.refresh_tree()
     
@@ -1113,63 +1254,40 @@ class AudioBook:
             cycle_count += 1
             delay = self.rm_delay.get() / 1000.0
             spell_key = self.rm_spell_hotkey.get()
+            num_potions = self.rm_potions_count.get()
+            num_casts = self.rm_casts_count.get()
             
-            # Phase 1: 2x (3 potions + 1 spell)
-            for i in range(2):
-                if not self.runemaker_running:
-                    return
-                
-                # Check if paused
-                while self.runemaker_paused and self.runemaker_running:
-                    time.sleep(0.1)
-                
-                self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 1: {i+1}/2 (3pot+1spell)")
-                
-                # 3 potions (mouse clicks)
-                for p in range(3):
-                    if not self.runemaker_running:
-                        return
-                    while self.runemaker_paused and self.runemaker_running:
-                        time.sleep(0.1)
-                    use_potion()
-                    time.sleep(delay)
-                
-                # 1 spell (keypress)
-                if not self.runemaker_running:
-                    return
-                while self.runemaker_paused and self.runemaker_running:
-                    time.sleep(0.1)
-                press_key(spell_key)
-                time.sleep(delay)
-            
-            # Phase 2: 1x (3 potions + 3 spells) - to burn mana
-            if not self.runemaker_running:
-                return
-            
+            # Check if paused
             while self.runemaker_paused and self.runemaker_running:
                 time.sleep(0.1)
             
-            self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 2: 3pot+3spell (gastar mana)")
+            if not self.runemaker_running:
+                return
             
-            # 3 potions (mouse clicks)
-            for p in range(3):
+            # Update cycle display
+            self.rm_cycle_label.config(text=f"Ciclo {cycle_count}: {num_potions} pot + {num_casts} cast")
+            
+            # Execute configured number of potions (mouse clicks)
+            for p in range(num_potions):
                 if not self.runemaker_running:
                     return
                 while self.runemaker_paused and self.runemaker_running:
                     time.sleep(0.1)
+                self.rm_cycle_label.config(text=f"Ciclo {cycle_count}: Potion {p+1}/{num_potions}")
                 use_potion()
                 time.sleep(delay)
             
-            # 3 spells (keypresses) - to burn mana
-            for s in range(3):
+            # Execute configured number of casts (keypresses)
+            for s in range(num_casts):
                 if not self.runemaker_running:
                     return
                 while self.runemaker_paused and self.runemaker_running:
                     time.sleep(0.1)
+                self.rm_cycle_label.config(text=f"Ciclo {cycle_count}: Cast {s+1}/{num_casts}")
                 press_key(spell_key)
                 time.sleep(delay)
             
-            print(f"[RUNEMAKER] Ciclo {cycle_count} completo!")
+            print(f"[RUNEMAKER] Ciclo {cycle_count} completo! ({num_potions} pot + {num_casts} cast)")
         
         self.rm_cycle_label.config(text="")
     
@@ -1186,10 +1304,19 @@ class AudioBook:
             'spell_hotkey': self.rm_spell_hotkey.get(),
             'pause_hotkey': self.rm_pause_hotkey.get(),
             'delay': self.rm_delay.get(),
+            'potions_count': self.rm_potions_count.get(),
+            'casts_count': self.rm_casts_count.get(),
             'potion_clicks': existing_clicks
         }
         
         self.save_config()
+    
+    def update_cycle_display(self):
+        """Update the cycle info display based on current potions/casts settings"""
+        potions = self.rm_potions_count.get()
+        casts = self.rm_casts_count.get()
+        self.rm_cycle_info.config(text=f"Ciclo: {potions} potions + {casts} cast(s) -> repete")
+        self.save_runemaker_config()
     
     def load_runemaker_config(self):
         """Load runemaker settings from config"""
@@ -1201,6 +1328,16 @@ class AudioBook:
             self.rm_pause_hotkey.set(rm.get('pause_hotkey', 'F9'))
         if hasattr(self, 'rm_delay'):
             self.rm_delay.set(rm.get('delay', 500))
+        if hasattr(self, 'rm_potions_count'):
+            self.rm_potions_count.set(rm.get('potions_count', 3))
+        if hasattr(self, 'rm_casts_count'):
+            self.rm_casts_count.set(rm.get('casts_count', 1))
+        
+        # Update cycle display
+        if hasattr(self, 'rm_cycle_info'):
+            potions = rm.get('potions_count', 3)
+            casts = rm.get('casts_count', 1)
+            self.rm_cycle_info.config(text=f"Ciclo: {potions} potions + {casts} cast(s) -> repete")
         
         # Update potion status label if positions are saved
         if hasattr(self, 'rm_potion_status'):
@@ -1216,6 +1353,146 @@ class AudioBook:
             self.runemaker_enabled.set(False)
         if hasattr(self, 'rm_enabled_btn'):
             self.update_checkbox_icon(self.rm_enabled_btn, self.runemaker_enabled)
+    
+    # ========== HYPER GRAB CHRONICLES METHODS ==========
+    
+    def toggle_hypergrab(self):
+        """Toggle Hyper Grab on/off"""
+        if hasattr(self, 'hg_enabled_btn'):
+            self.update_checkbox_icon(self.hg_enabled_btn, self.hypergrab_enabled)
+        
+        if self.hypergrab_enabled.get():
+            self.hg_status_label.config(text="[ATIVO]", fg=self.colors['status_on'])
+        else:
+            self.hg_status_label.config(text="[OFF]", fg=self.colors['status_off'])
+        
+        self.save_hypergrab_config()
+    
+    def change_hypergrab_hotkey(self):
+        """Change the Hyper Grab hotkey"""
+        dialog = self.create_ember_dialog("Hyper Grab Hotkey", 400, 200)
+        
+        tk.Label(dialog, text="Hyper Grab Hotkey", font=('Georgia', 14, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['text_header']).pack(pady=15)
+        
+        tk.Label(dialog, text="Pressione qualquer tecla...", font=('Arial', 11),
+                bg=self.colors['bg_primary'], fg=self.colors['text_body']).pack(pady=10)
+        
+        key_label = tk.Label(dialog, text=self.hypergrab_hotkey.get(), font=('Consolas', 16, 'bold'),
+                bg=self.colors['bg_inset'], fg=self.colors['status_on'], padx=20, pady=10)
+        key_label.pack(pady=10)
+        
+        def on_key(event):
+            key_name = event.keysym
+            self.hypergrab_hotkey.set(key_name)
+            key_label.config(text=key_name)
+            self.save_hypergrab_config()
+            dialog.after(300, dialog.destroy)
+        
+        dialog.bind('<Key>', on_key)
+        dialog.focus_force()
+    
+    def record_hypergrab_bp(self):
+        """Record backpack slot position for Hyper Grab"""
+        dialog = self.create_ember_dialog("Gravar Slot BP", 450, 200)
+        
+        tk.Label(dialog, text="Gravar Posicao do Slot da BP", font=('Georgia', 12, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['text_header']).pack(pady=10)
+        
+        tk.Label(dialog, text="Clique no slot SUPERIOR DIREITO da sua backpack", 
+                font=('Arial', 10), bg=self.colors['bg_primary'], fg=self.colors['text_body']).pack(pady=5)
+        
+        status = tk.Label(dialog, text="Aguardando clique...", font=('Consolas', 11, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['status_on'])
+        status.pack(pady=10)
+        
+        def on_click(x, y, button, pressed):
+            if pressed and button == mouse.Button.left:
+                self.hypergrab_bp_pos = {'x': x, 'y': y}
+                
+                # Save to config
+                if 'hypergrab' not in self.config:
+                    self.config['hypergrab'] = {}
+                self.config['hypergrab']['bp_pos'] = self.hypergrab_bp_pos
+                self.save_config()
+                
+                # Update UI
+                self.hg_bp_status.config(text=f"[OK] ({x},{y})", fg=self.colors['status_on'])
+                status.config(text=f"Gravado: ({x},{y})")
+                
+                listener.stop()
+                dialog.after(500, dialog.destroy)
+                return False
+        
+        listener = mouse.Listener(on_click=on_click)
+        listener.start()
+    
+    def execute_hypergrab(self):
+        """Execute instant drag from current mouse position to backpack slot"""
+        if not self.hypergrab_enabled.get():
+            return
+        
+        # Get backpack position from config
+        hg_config = self.config.get('hypergrab', {})
+        bp_pos = hg_config.get('bp_pos')
+        
+        if not bp_pos:
+            print("[HYPERGRAB] ERRO: Grave a posicao do slot da BP primeiro!")
+            return
+        
+        try:
+            # Get current mouse position (where item is)
+            current_x, current_y = pyautogui.position()
+            target_x, target_y = bp_pos['x'], bp_pos['y']
+            
+            # INSTANT DRAG: left click down -> move instant -> left click up
+            pyautogui.mouseDown(button='left')
+            pyautogui.moveTo(target_x, target_y, duration=0)  # INSTANT - 0ms
+            pyautogui.mouseUp(button='left')
+            
+            print(f"[HYPERGRAB] Item arrastado de ({current_x},{current_y}) para BP ({target_x},{target_y})")
+            
+        except Exception as e:
+            print(f"[HYPERGRAB] Erro: {e}")
+    
+    def save_hypergrab_config(self):
+        """Save Hyper Grab settings to config"""
+        if 'hypergrab' not in self.config:
+            self.config['hypergrab'] = {}
+        
+        # Preserve existing bp_pos
+        existing_pos = self.config.get('hypergrab', {}).get('bp_pos')
+        
+        self.config['hypergrab'] = {
+            'enabled': self.hypergrab_enabled.get(),
+            'hotkey': self.hypergrab_hotkey.get(),
+            'bp_pos': existing_pos
+        }
+        
+        self.save_config()
+    
+    def load_hypergrab_config(self):
+        """Load Hyper Grab settings from config"""
+        hg = self.config.get('hypergrab', {})
+        
+        if hasattr(self, 'hypergrab_hotkey'):
+            self.hypergrab_hotkey.set(hg.get('hotkey', 'F5'))
+        
+        # Update BP status label
+        if hasattr(self, 'hg_bp_status'):
+            bp_pos = hg.get('bp_pos')
+            if bp_pos:
+                self.hg_bp_status.config(text=f"[OK] ({bp_pos['x']},{bp_pos['y']})", 
+                                         fg=self.colors['status_on'])
+                self.hypergrab_bp_pos = bp_pos
+            else:
+                self.hg_bp_status.config(text="[Nao gravado]", fg=self.colors['text_subdued'])
+        
+        # Don't auto-enable on load
+        if hasattr(self, 'hypergrab_enabled'):
+            self.hypergrab_enabled.set(False)
+        if hasattr(self, 'hg_enabled_btn'):
+            self.update_checkbox_icon(self.hg_enabled_btn, self.hypergrab_enabled)
     
     def create_ember_dialog(self, title, width=400, height=250):
         """Create a dialog with ember theme colors and proper focus"""
@@ -2850,25 +3127,52 @@ Pressione 'Iniciar' quando estiver pronto!"""
             self.refresh_tree()
     
     def start_hotkey_listener(self):
+        # Heartbeat tracking for listener health
+        self.listener_heartbeat = time.time()
+        
         def on_press(key):
+            # Update heartbeat on every keypress
+            self.listener_heartbeat = time.time()
+            
             if not self.active:
                 return
             
             try:
                 # Ignore OS command keys (Windows/Cmd) - prevents combo contamination
-                if hasattr(keyboard.Key, 'cmd') and key in (keyboard.Key.cmd, keyboard.Key.cmd_l, keyboard.Key.cmd_r):
-                    return
+                try:
+                    if hasattr(keyboard.Key, 'cmd') and key in (keyboard.Key.cmd, keyboard.Key.cmd_l, keyboard.Key.cmd_r):
+                        return
+                except:
+                    pass
                 
-                # Handle modifier keys
-                if key in (keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r):
-                    self.currently_pressed.add('ctrl')
-                elif key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r):
-                    self.currently_pressed.add('alt')
-                elif key in (keyboard.Key.shift, keyboard.Key.shift_l, keyboard.Key.shift_r):
-                    self.currently_pressed.add('shift')
-                else:
-                    k = key.char.lower() if hasattr(key, 'char') else key.name.lower()
-                    self.currently_pressed.add(k)
+                # Safely get key name with multiple fallbacks
+                key_name = None
+                try:
+                    # Handle modifier keys first
+                    if key in (keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r):
+                        self.currently_pressed.add('ctrl')
+                        key_name = 'ctrl'
+                    elif key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r):
+                        self.currently_pressed.add('alt')
+                        key_name = 'alt'
+                    elif key in (keyboard.Key.shift, keyboard.Key.shift_l, keyboard.Key.shift_r):
+                        self.currently_pressed.add('shift')
+                        key_name = 'shift'
+                    else:
+                        # Try to get char first, then name
+                        if hasattr(key, 'char') and key.char is not None:
+                            key_name = key.char.lower()
+                        elif hasattr(key, 'name') and key.name is not None:
+                            key_name = key.name.lower()
+                        else:
+                            # Unknown key, skip silently
+                            return
+                        
+                        if key_name:
+                            self.currently_pressed.add(key_name)
+                except Exception as e:
+                    # If we can't identify the key, just skip it silently
+                    return
                 
                 # Build current combo string (for quick configs)
                 current_combo = self._build_combo_string(self.currently_pressed)
@@ -2923,6 +3227,16 @@ Pressione 'Iniciar' quando estiver pronto!"""
                             # Execute Auto MANA
                             threading.Thread(target=self.execute_quick_mana, daemon=True).start()
                 
+                # Check Hyper Grab Chronicles
+                hg_config = self.config.get('hypergrab', {})
+                if hg_config.get('enabled', False):
+                    hg_hotkey = hg_config.get('hotkey', 'f5').lower()
+                    if current_combo == hg_hotkey:
+                        if 'hypergrab' not in self.triggered_quick_keys:
+                            self.triggered_quick_keys.add('hypergrab')
+                            # Execute Hyper Grab (instant drag to BP)
+                            threading.Thread(target=self.execute_hypergrab, daemon=True).start()
+                
                 # Check Runemaker Pause Hotkey
                 if hasattr(self, 'rm_pause_hotkey') and self.runemaker_running:
                     pause_hotkey = self.rm_pause_hotkey.get().lower()
@@ -2952,21 +3266,38 @@ Pressione 'Iniciar' quando estiver pronto!"""
                 pass
         
         def on_release(key):
+            # Update heartbeat
+            self.listener_heartbeat = time.time()
+            
             try:
                 # Ignore OS command keys (Windows/Cmd)
-                if hasattr(keyboard.Key, 'cmd') and key in (keyboard.Key.cmd, keyboard.Key.cmd_l, keyboard.Key.cmd_r):
-                    return
+                try:
+                    if hasattr(keyboard.Key, 'cmd') and key in (keyboard.Key.cmd, keyboard.Key.cmd_l, keyboard.Key.cmd_r):
+                        return
+                except:
+                    pass
                 
-                # Handle modifier keys
-                if key in (keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r):
-                    self.currently_pressed.discard('ctrl')
-                elif key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r):
-                    self.currently_pressed.discard('alt')
-                elif key in (keyboard.Key.shift, keyboard.Key.shift_l, keyboard.Key.shift_r):
-                    self.currently_pressed.discard('shift')
-                else:
-                    k = key.char.lower() if hasattr(key, 'char') else key.name.lower()
-                    self.currently_pressed.discard(k)
+                # Safely handle key release
+                try:
+                    # Handle modifier keys
+                    if key in (keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r):
+                        self.currently_pressed.discard('ctrl')
+                    elif key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r):
+                        self.currently_pressed.discard('alt')
+                    elif key in (keyboard.Key.shift, keyboard.Key.shift_l, keyboard.Key.shift_r):
+                        self.currently_pressed.discard('shift')
+                    else:
+                        # Safely get key name
+                        key_name = None
+                        if hasattr(key, 'char') and key.char is not None:
+                            key_name = key.char.lower()
+                        elif hasattr(key, 'name') and key.name is not None:
+                            key_name = key.name.lower()
+                        
+                        if key_name:
+                            self.currently_pressed.discard(key_name)
+                except:
+                    pass
                 
                 # Reset quick config keys based on current combo
                 current_combo = self._build_combo_string(self.currently_pressed)
@@ -2983,6 +3314,12 @@ Pressione 'Iniciar' quando estiver pronto!"""
                     pause_hotkey = self.rm_pause_hotkey.get().lower()
                     if pause_hotkey != current_combo:
                         self.triggered_quick_keys.discard('rm_pause')
+                
+                # Reset Hyper Grab hotkey
+                hg_config = self.config.get('hypergrab', {})
+                hg_hotkey = hg_config.get('hotkey', 'f5').lower()
+                if hg_hotkey != current_combo:
+                    self.triggered_quick_keys.discard('hypergrab')
                 
                 # Reset triggered state for custom hotkeys that are no longer fully pressed
                 for idx, hk in enumerate(self.hotkeys):
@@ -3004,19 +3341,52 @@ Pressione 'Iniciar' quando estiver pronto!"""
     def start_listener_watchdog(self):
         """Monitor the keyboard listener and restart it if it stops working"""
         def watchdog():
+            consecutive_failures = 0
+            
             while True:
-                time.sleep(30)  # Check every 30 seconds
+                time.sleep(5)  # Check every 5 seconds (more aggressive)
                 try:
-                    # Check if listener is still alive
-                    if not self.keyboard_listener.is_alive():
-                        print("[WATCHDOG] Keyboard listener died! Restarting...")
-                        self.restart_hotkey_listener()
-                except Exception as e:
-                    print(f"[WATCHDOG] Error checking listener: {e}")
+                    # Method 1: Check if listener thread is alive
+                    listener_alive = False
                     try:
-                        self.restart_hotkey_listener()
+                        listener_alive = self.keyboard_listener.is_alive()
                     except:
                         pass
+                    
+                    if not listener_alive:
+                        print("[WATCHDOG] Keyboard listener thread died! Restarting...")
+                        consecutive_failures += 1
+                        self.restart_hotkey_listener()
+                        continue
+                    
+                    # Method 2: Check heartbeat (if no key pressed in 60 seconds while active, 
+                    # do a preventive restart to clear any stuck state)
+                    if hasattr(self, 'listener_heartbeat') and self.active:
+                        time_since_heartbeat = time.time() - self.listener_heartbeat
+                        # If active but no heartbeat for 120 seconds, do preventive restart
+                        if time_since_heartbeat > 120:
+                            print(f"[WATCHDOG] No heartbeat for {int(time_since_heartbeat)}s, preventive restart...")
+                            self.listener_heartbeat = time.time()  # Reset to avoid spam
+                            self.restart_hotkey_listener()
+                            continue
+                    
+                    # Reset failure counter on success
+                    consecutive_failures = 0
+                    
+                except Exception as e:
+                    print(f"[WATCHDOG] Error: {e}")
+                    consecutive_failures += 1
+                    
+                    # If multiple consecutive failures, try harder to restart
+                    if consecutive_failures >= 3:
+                        print(f"[WATCHDOG] {consecutive_failures} failures, forcing restart...")
+                        try:
+                            self.currently_pressed = set()
+                            self.triggered_hotkeys = set()
+                            self.triggered_quick_keys = set()
+                            self.restart_hotkey_listener()
+                        except:
+                            pass
         
         watchdog_thread = threading.Thread(target=watchdog, daemon=True)
         watchdog_thread.start()
