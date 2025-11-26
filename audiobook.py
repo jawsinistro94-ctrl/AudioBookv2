@@ -180,158 +180,143 @@ class AudioBook:
         style.configure('Title.TLabel', background=self.colors['bg_primary'], foreground=self.colors['text_header'], font=('Georgia', 18, 'bold'))
         style.configure('Accent.TButton', background=self.colors['button_default'], foreground=self.colors['text_body'], font=('Georgia', 10, 'bold'))
         
+        # Configure Tab style for ember theme
+        style.configure('Ember.TNotebook', background=self.colors['bg_primary'], borderwidth=0)
+        style.configure('Ember.TNotebook.Tab', 
+                       background=self.colors['bg_secondary'], 
+                       foreground=self.colors['text_body'],
+                       padding=[12, 6],
+                       font=('Georgia', 9, 'bold'))
+        style.map('Ember.TNotebook.Tab',
+                 background=[('selected', self.colors['border_highlight']), ('active', self.colors['button_hover'])],
+                 foreground=[('selected', self.colors['text_header']), ('active', self.colors['text_header'])])
+        
+        # COMPACT WINDOW SIZE - ElfBot style
+        self.root.geometry("520x580")
+        
         # Main container with Magma background using Canvas
-        self.canvas = tk.Canvas(self.root, width=900, height=950, highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, width=520, height=580, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         
         # Draw background image on canvas
         if self.magma_bg:
-            self.canvas.create_image(0, 0, image=self.magma_bg, anchor='nw')
+            # Resize magma for compact window
+            try:
+                magma_img = Image.open(resource_path('magma_background.jpg'))
+                magma_img = magma_img.resize((520, 580), Image.Resampling.LANCZOS)
+                magma_img = Image.eval(magma_img, lambda x: int(x * 0.6))
+                self.magma_bg_compact = ImageTk.PhotoImage(magma_img)
+                self.canvas.create_image(0, 0, image=self.magma_bg_compact, anchor='nw')
+            except:
+                self.canvas.configure(bg=self.colors['bg_primary'])
         else:
             self.canvas.configure(bg=self.colors['bg_primary'])
         
         # Create main frame (compact padding)
-        main_frame = tk.Frame(self.canvas, bg='', padx=10, pady=8)
+        main_frame = tk.Frame(self.canvas, bg=self.colors['bg_primary'], padx=8, pady=6)
         
         # Embed frame in canvas
-        self.canvas.create_window(0, 0, window=main_frame, anchor='nw', width=900, height=950)
+        self.canvas.create_window(0, 0, window=main_frame, anchor='nw', width=520, height=580)
         
-        # Title bar (compact)
-        title_outer = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=3)
-        title_outer.grid(row=0, column=0, columnspan=3, pady=(0, 8), sticky=(tk.W, tk.E))
+        # ===== COMPACT HEADER BAR =====
+        header_frame = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=2)
+        header_frame.pack(fill=tk.X, pady=(0, 6))
         
-        title_frame = tk.Frame(title_outer, bg=self.colors['bg_secondary'], relief=tk.SUNKEN, borderwidth=2)
-        title_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        header_inner = tk.Frame(header_frame, bg=self.colors['bg_secondary'], padx=8, pady=4)
+        header_inner.pack(fill=tk.X, padx=1, pady=1)
         
-        title_label = tk.Label(title_frame, text="AudioBook - Automation System", 
-                              font=('Georgia', 16, 'bold'), bg=self.colors['bg_secondary'], 
-                              fg=self.colors['text_header'], pady=6)
-        title_label.pack()
+        # Title with fire icon
+        if self.fire_icon:
+            tk.Label(header_inner, image=self.fire_icon, bg=self.colors['bg_secondary']).pack(side=tk.LEFT, padx=2)
         
-        # Profile management section (compact)
-        profile_outer = tk.Frame(main_frame, bg=self.colors['border'], relief=tk.GROOVE, borderwidth=2)
-        profile_outer.grid(row=1, column=0, columnspan=3, pady=5, sticky=(tk.W, tk.E))
+        tk.Label(header_inner, text="AudioBook v2.0", 
+                font=('Georgia', 12, 'bold'), bg=self.colors['bg_secondary'], 
+                fg=self.colors['text_header']).pack(side=tk.LEFT, padx=4)
         
-        profile_inner = tk.Frame(profile_outer, bg=self.colors['bg_secondary'], padx=8, pady=5)
-        profile_inner.pack(fill=tk.X, padx=1, pady=1)
-        
-        tk.Label(profile_inner, text="Perfil:", bg=self.colors['bg_secondary'], 
-                fg=self.colors['text_header'], font=('Georgia', 11, 'bold')).pack(side=tk.LEFT, padx=5)
-        
-        self.current_profile = tk.StringVar(value="Padrão")
-        self.profile_dropdown = ttk.Combobox(profile_inner, textvariable=self.current_profile, 
-                                             state='readonly', width=20, font=('Georgia', 10))
-        self.profile_dropdown['values'] = list(self.config.get('profiles', {'Padrão': {}}).keys())
-        self.profile_dropdown.bind('<<ComboboxSelected>>', lambda e: self.switch_profile())
-        self.profile_dropdown.pack(side=tk.LEFT, padx=5)
-        
-        tk.Button(profile_inner, text="[+] Novo", command=self.create_profile,
-                 bg=self.colors['button_default'], fg=self.colors['text_header'], 
-                 font=('Georgia', 9, 'bold'), relief=tk.RAISED, borderwidth=2, 
-                 padx=8, pady=3).pack(side=tk.LEFT, padx=3)
-        
-        tk.Button(profile_inner, text="[✎] Renomear", command=self.rename_profile,
-                 bg=self.colors['button_default'], fg=self.colors['text_header'], 
-                 font=('Georgia', 9, 'bold'), relief=tk.RAISED, borderwidth=2,
-                 padx=8, pady=3).pack(side=tk.LEFT, padx=3)
-        
-        tk.Button(profile_inner, text="[X] Deletar", command=self.delete_profile,
-                 bg=self.colors['button_destructive'], fg=self.colors['text_header'], 
-                 font=('Georgia', 9, 'bold'), relief=tk.RAISED, borderwidth=2,
-                 padx=8, pady=3).pack(side=tk.LEFT, padx=3)
-        
-        # Status indicator (compact, inline with profile)
-        self.status_frame = tk.Frame(profile_inner, bg=self.colors['bg_secondary'])
-        self.status_frame.pack(side=tk.RIGHT, padx=10)
+        # Status indicator (right side of header)
+        self.status_frame = tk.Frame(header_inner, bg=self.colors['bg_secondary'])
+        self.status_frame.pack(side=tk.RIGHT, padx=4)
         
         self.status_label = tk.Label(self.status_frame, text="ON", 
                                      foreground=self.colors['status_on'], bg=self.colors['bg_secondary'],
-                                     font=('Georgia', 14, 'bold'))
-        self.status_label.pack(side=tk.LEFT, padx=5)
+                                     font=('Georgia', 11, 'bold'))
+        self.status_label.pack(side=tk.LEFT, padx=3)
         
         if self.power_icon:
             self.toggle_btn = tk.Button(self.status_frame, image=self.power_icon, command=self.toggle_active,
-                                        bg=self.colors['status_on'], relief=tk.RAISED, borderwidth=3,
-                                        activebackground=self.colors['focus_glow'], padx=4, pady=4)
+                                        bg=self.colors['status_on'], relief=tk.RAISED, borderwidth=2,
+                                        activebackground=self.colors['focus_glow'], padx=2, pady=2)
         else:
             self.toggle_btn = tk.Button(self.status_frame, text="[O]", command=self.toggle_active,
                                         bg=self.colors['status_on'], fg='#000000',
-                                        font=('Courier', 14, 'bold'), relief=tk.RAISED, borderwidth=3,
-                                        activebackground=self.colors['focus_glow'], padx=8, pady=2)
-        self.toggle_btn.pack(side=tk.LEFT, padx=3)
+                                        font=('Courier', 12, 'bold'), relief=tk.RAISED, borderwidth=2,
+                                        activebackground=self.colors['focus_glow'], padx=4, pady=1)
+        self.toggle_btn.pack(side=tk.LEFT, padx=2)
         
-        # Hotkey list (compact)
-        list_outer = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=3)
-        list_outer.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
+        # Alt+F12 hint
+        tk.Label(header_inner, text="Alt+F12: Pausar", 
+                font=('Consolas', 8), bg=self.colors['bg_secondary'], 
+                fg=self.colors['text_subdued']).pack(side=tk.RIGHT, padx=8)
         
-        list_border = tk.Frame(list_outer, bg=self.colors['border'], relief=tk.RAISED, borderwidth=2)
-        list_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        # ===== COMPACT PROFILE BAR =====
+        profile_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=1)
+        profile_frame.pack(fill=tk.X, pady=(0, 4))
         
-        # Title with fire icon
-        list_title_frame = tk.Frame(list_border, bg=self.colors['border'])
-        list_title_frame.pack(fill=tk.X, pady=5)
+        profile_inner = tk.Frame(profile_frame, bg=self.colors['bg_secondary'], padx=6, pady=3)
+        profile_inner.pack(fill=tk.X)
         
-        if self.fire_icon:
-            tk.Label(list_title_frame, image=self.fire_icon, bg=self.colors['border']).pack(side=tk.LEFT, padx=5)
+        tk.Label(profile_inner, text="Perfil:", bg=self.colors['bg_secondary'], 
+                fg=self.colors['text_header'], font=('Georgia', 9, 'bold')).pack(side=tk.LEFT, padx=3)
         
-        tk.Label(list_title_frame, text="Hotkeys Configuradas", 
-                bg=self.colors['border'], fg=self.colors['text_header'],
-                font=('Georgia', 12, 'bold')).pack(side=tk.LEFT, padx=5)
+        self.current_profile = tk.StringVar(value="Padrão")
+        self.profile_dropdown = ttk.Combobox(profile_inner, textvariable=self.current_profile, 
+                                             state='readonly', width=14, font=('Georgia', 9))
+        self.profile_dropdown['values'] = list(self.config.get('profiles', {'Padrão': {}}).keys())
+        self.profile_dropdown.bind('<<ComboboxSelected>>', lambda e: self.switch_profile())
+        self.profile_dropdown.pack(side=tk.LEFT, padx=3)
         
-        if self.fire_icon:
-            tk.Label(list_title_frame, image=self.fire_icon, bg=self.colors['border']).pack(side=tk.RIGHT, padx=5)
+        tk.Button(profile_inner, text="+", command=self.create_profile,
+                 bg=self.colors['button_default'], fg=self.colors['text_header'], 
+                 font=('Georgia', 9, 'bold'), relief=tk.RAISED, borderwidth=1, 
+                 padx=6, pady=1).pack(side=tk.LEFT, padx=2)
         
-        list_frame = tk.Frame(list_border, bg=self.colors['bg_inset'], padx=5, pady=5)
-        list_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        tk.Button(profile_inner, text="Ren", command=self.rename_profile,
+                 bg=self.colors['button_default'], fg=self.colors['text_header'], 
+                 font=('Georgia', 8), relief=tk.RAISED, borderwidth=1,
+                 padx=4, pady=1).pack(side=tk.LEFT, padx=2)
         
-        # Treeview for hotkeys with Tibia colors
-        columns = ('Hotkey', 'Clicks', 'Delay (ms)')
-        self.tree = ttk.Treeview(list_frame, columns=columns, show='headings', height=4)
+        tk.Button(profile_inner, text="X", command=self.delete_profile,
+                 bg=self.colors['button_destructive'], fg=self.colors['text_header'], 
+                 font=('Georgia', 9, 'bold'), relief=tk.RAISED, borderwidth=1,
+                 padx=6, pady=1).pack(side=tk.LEFT, padx=2)
         
-        # Configure Treeview colors
+        # ===== TABBED NOTEBOOK - ElfBot Style =====
+        self.notebook = ttk.Notebook(main_frame, style='Ember.TNotebook')
+        self.notebook.pack(fill=tk.BOTH, expand=True, pady=4)
+        
+        # Create tab frames
+        self.tab_best_sellers = tk.Frame(self.notebook, bg=self.colors['bg_inset'])
+        self.tab_runemaker = tk.Frame(self.notebook, bg=self.colors['bg_inset'])
+        self.tab_hyper_grab = tk.Frame(self.notebook, bg=self.colors['bg_inset'])
+        self.tab_targeting = tk.Frame(self.notebook, bg=self.colors['bg_inset'])
+        self.tab_settings = tk.Frame(self.notebook, bg=self.colors['bg_inset'])
+        
+        # Add tabs to notebook
+        self.notebook.add(self.tab_best_sellers, text="Best Sellers")
+        self.notebook.add(self.tab_runemaker, text="Runemaker")
+        self.notebook.add(self.tab_hyper_grab, text="Hyper Grab")
+        self.notebook.add(self.tab_targeting, text="Targeting")
+        self.notebook.add(self.tab_settings, text="Settings")
+        
+        # Configure Treeview colors for hotkey list
         style.configure("Treeview", background=self.colors['bg_secondary'], fieldbackground=self.colors['bg_secondary'],
-                       foreground=self.colors['text_body'], font=('Consolas', 9))
+                       foreground=self.colors['text_body'], font=('Consolas', 8))
         style.configure("Treeview.Heading", background=self.colors['border'],
-                       foreground=self.colors['text_header'], font=('Georgia', 10, 'bold'))
+                       foreground=self.colors['text_header'], font=('Georgia', 9, 'bold'))
         style.map('Treeview', background=[('selected', self.colors['selection'])])
         
-        self.tree.heading('Hotkey', text='Hotkey')
-        self.tree.heading('Clicks', text='Click Sequence')
-        self.tree.heading('Delay (ms)', text='Delay Between Clicks')
-        
-        self.tree.column('Hotkey', width=150)
-        self.tree.column('Clicks', width=400)
-        self.tree.column('Delay (ms)', width=150)
-        
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscroll=scrollbar.set)
-        
-        self.tree.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
-        
-        # ========== QUICK CONFIGS - Best Sellers ==========
-        quick_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=3)
-        quick_outer.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
-        
-        quick_border = tk.Frame(quick_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
-        quick_border.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
-        
-        # Title with trophy icon
-        quick_title_frame = tk.Frame(quick_border, bg=self.colors['border_highlight'])
-        quick_title_frame.pack(fill=tk.X, pady=5)
-        
-        if self.trophy_icon:
-            tk.Label(quick_title_frame, image=self.trophy_icon, bg=self.colors['border_highlight']).pack(side=tk.LEFT, padx=5)
-        
-        tk.Label(quick_title_frame, text="Best Sellers", 
-                bg=self.colors['border_highlight'], fg=self.colors['text_header'],
-                font=('Georgia', 12, 'bold')).pack(side=tk.LEFT, padx=5)
-        
-        if self.trophy_icon:
-            tk.Label(quick_title_frame, image=self.trophy_icon, bg=self.colors['border_highlight']).pack(side=tk.RIGHT, padx=5)
-        
-        quick_frame = tk.Frame(quick_border, bg=self.colors['bg_inset'], padx=10, pady=10)
-        quick_frame.pack(fill=tk.X, padx=2, pady=2)
+        # ===== BEST SELLERS TAB CONTENT =====
+        quick_frame = tk.Frame(self.tab_best_sellers, bg=self.colors['bg_inset'], padx=8, pady=6)
         
         # Auto SD inline controls - Ember Style
         self.sd_frame = tk.Frame(quick_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
@@ -561,9 +546,12 @@ class AudioBook:
         self.mana_delay_label.pack(side=tk.LEFT)
         self.auto_mana_delay.trace('w', lambda *args: self.mana_delay_label.config(text=f"{self.auto_mana_delay.get()}ms"))
         
-        # ========== RUNEMAKER SECTION ==========
-        runemaker_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=3)
-        runemaker_outer.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+        # Pack the Best Sellers quick_frame into its tab
+        quick_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # ========== RUNEMAKER TAB CONTENT ==========
+        runemaker_outer = tk.Frame(self.tab_runemaker, bg=self.colors['bg_inset'], padx=8, pady=6)
+        runemaker_outer.pack(fill=tk.BOTH, expand=True)
         
         runemaker_border = tk.Frame(runemaker_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
         runemaker_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
@@ -746,9 +734,9 @@ class AudioBook:
                 bg=self.colors['bg_primary'], fg=self.colors['status_on'])
         self.rm_cycle_label.pack(pady=2)
         
-        # ========== HYPER GRAB CHRONICLES SECTION ==========
-        hypergrab_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=3)
-        hypergrab_outer.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+        # ========== HYPER GRAB TAB CONTENT ==========
+        hypergrab_outer = tk.Frame(self.tab_hyper_grab, bg=self.colors['bg_inset'], padx=8, pady=6)
+        hypergrab_outer.pack(fill=tk.BOTH, expand=True)
         
         hypergrab_border = tk.Frame(hypergrab_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
         hypergrab_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
@@ -849,52 +837,76 @@ class AudioBook:
         tk.Label(hg_info_frame, text="Aperte hotkey -> item sob o mouse vai INSTANTANEAMENTE pra BP", 
                 font=('Consolas', 9), bg=self.colors['bg_primary'], fg=self.colors['text_body'], pady=3).pack()
         
-        # Movement mode toggle
-        movement_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        movement_frame.grid(row=6, column=0, columnspan=3, pady=4)
+        # ========== SETTINGS TAB CONTENT ==========
+        settings_outer = tk.Frame(self.tab_settings, bg=self.colors['bg_inset'], padx=8, pady=6)
+        settings_outer.pack(fill=tk.BOTH, expand=True)
         
-        self.instant_movement = tk.BooleanVar(value=False)  # False = gradual, True = instant
+        # Movement mode toggle
+        movement_frame = tk.Frame(settings_outer, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
+        movement_frame.pack(fill=tk.X, pady=4)
+        
+        self.instant_movement = tk.BooleanVar(value=False)
         
         tk.Label(movement_frame, text="Modo de Movimento:", bg=self.colors['bg_secondary'], 
-                fg=self.colors['text_header'], font=('Georgia', 10, 'bold')).pack(side=tk.LEFT, padx=10)
+                fg=self.colors['text_header'], font=('Georgia', 9, 'bold')).pack(side=tk.LEFT, padx=8, pady=4)
         
-        tk.Checkbutton(movement_frame, text="Teleporte Instantâneo (mais rápido, detectável)",
+        tk.Checkbutton(movement_frame, text="Teleporte Instantaneo",
                       variable=self.instant_movement, bg=self.colors['bg_secondary'], 
                       fg=self.colors['text_body'], selectcolor=self.colors['focus_glow'],
                       activebackground=self.colors['bg_inset'], font=('Georgia', 9)).pack(side=tk.LEFT, padx=5)
         
-        tk.Label(movement_frame, text="(desmarque = movimento humanizado)", 
-                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued'], 
-                font=('Consolas', 8, 'italic')).pack(side=tk.LEFT, padx=5)
+        # Custom hotkey management section
+        hotkey_section = tk.Frame(settings_outer, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
+        hotkey_section.pack(fill=tk.X, pady=4)
         
-        # Custom hotkey management buttons
-        button_frame = tk.Frame(main_frame)
-        button_frame.grid(row=7, column=0, columnspan=3, pady=6)
+        tk.Label(hotkey_section, text="Custom Hotkeys:", bg=self.colors['bg_secondary'], 
+                fg=self.colors['text_header'], font=('Georgia', 9, 'bold')).pack(side=tk.LEFT, padx=8, pady=4)
         
-        tk.Button(button_frame, text="[+] Custom Hotkey", command=self.add_hotkey_dialog,
+        tk.Button(hotkey_section, text="+", command=self.add_hotkey_dialog,
                  bg=self.colors['selection'], fg=self.colors['text_header'], font=('Georgia', 10, 'bold'),
-                 relief=tk.RAISED, borderwidth=3, padx=15, pady=5,
-                 activebackground=self.colors['text_header'], activeforeground=self.colors['bg_primary']).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="[E] Editar", command=self.edit_hotkey,
-                 bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Georgia', 9),
-                 relief=tk.RAISED, borderwidth=2, padx=10, pady=5,
-                 activebackground=self.colors['button_hover']).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="[X] Deletar", command=self.delete_hotkey,
-                 bg=self.colors['button_destructive'], fg=self.colors['text_body'], font=('Georgia', 9),
-                 relief=tk.RAISED, borderwidth=2, padx=10, pady=5,
-                 activebackground=self.colors['button_destructive']).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="[C] Limpar Tudo", command=self.clear_all,
-                 bg=self.colors['button_destructive'], fg=self.colors['text_body'], font=('Georgia', 9),
-                 relief=tk.RAISED, borderwidth=2, padx=10, pady=5,
-                 activebackground=self.colors['button_destructive']).pack(side=tk.LEFT, padx=5)
+                 relief=tk.RAISED, borderwidth=2, padx=8, pady=2).pack(side=tk.LEFT, padx=3)
+        tk.Button(hotkey_section, text="Edit", command=self.edit_hotkey,
+                 bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Georgia', 8),
+                 relief=tk.RAISED, borderwidth=1, padx=6, pady=2).pack(side=tk.LEFT, padx=3)
+        tk.Button(hotkey_section, text="Del", command=self.delete_hotkey,
+                 bg=self.colors['button_destructive'], fg=self.colors['text_body'], font=('Georgia', 8),
+                 relief=tk.RAISED, borderwidth=1, padx=6, pady=2).pack(side=tk.LEFT, padx=3)
+        tk.Button(hotkey_section, text="Clear", command=self.clear_all,
+                 bg=self.colors['button_destructive'], fg=self.colors['text_body'], font=('Georgia', 8),
+                 relief=tk.RAISED, borderwidth=1, padx=6, pady=2).pack(side=tk.LEFT, padx=3)
         
-        # Configure grid weights
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(0, weight=1)
-        main_frame.rowconfigure(2, weight=1)
-        list_frame.columnconfigure(0, weight=1)
-        list_frame.rowconfigure(0, weight=1)
+        # Hotkey list (Treeview)
+        list_frame = tk.Frame(settings_outer, bg=self.colors['bg_inset'], padx=4, pady=4)
+        list_frame.pack(fill=tk.BOTH, expand=True, pady=4)
+        
+        columns = ('Hotkey', 'Clicks', 'Delay')
+        self.tree = ttk.Treeview(list_frame, columns=columns, show='headings', height=6)
+        
+        self.tree.heading('Hotkey', text='Hotkey')
+        self.tree.heading('Clicks', text='Clicks')
+        self.tree.heading('Delay', text='Delay')
+        
+        self.tree.column('Hotkey', width=80)
+        self.tree.column('Clicks', width=250)
+        self.tree.column('Delay', width=70)
+        
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscroll=scrollbar.set)
+        
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # ========== TARGETING TAB CONTENT ==========
+        targeting_outer = tk.Frame(self.tab_targeting, bg=self.colors['bg_inset'], padx=8, pady=6)
+        targeting_outer.pack(fill=tk.BOTH, expand=True)
+        
+        tk.Label(targeting_outer, text="Auto-Target Configuration", 
+                font=('Georgia', 11, 'bold'), bg=self.colors['bg_inset'], 
+                fg=self.colors['text_header']).pack(pady=8)
+        
+        tk.Label(targeting_outer, text="Use o botao de calibrar para configurar o auto-target",
+                font=('Georgia', 9), bg=self.colors['bg_inset'], 
+                fg=self.colors['text_body']).pack(pady=4)
         
         # Load quick configs from saved data
         self.load_quick_configs()
