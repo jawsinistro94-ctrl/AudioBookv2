@@ -28,7 +28,7 @@ class AudioBook:
     def __init__(self, root):
         self.root = root
         self.root.title("AudioBook - Automation System")
-        self.root.geometry("900x1200")  # Larger height to show all controls including Runemaker
+        self.root.geometry("900x950")  # Optimized height for all controls
         
         # Harmonized EMBER/BRASAS color palette
         self.colors = {
@@ -181,8 +181,7 @@ class AudioBook:
         style.configure('Accent.TButton', background=self.colors['button_default'], foreground=self.colors['text_body'], font=('Georgia', 10, 'bold'))
         
         # Main container with Magma background using Canvas
-        # Canvas approach: background image + widgets via create_window
-        self.canvas = tk.Canvas(self.root, width=900, height=1050, highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, width=900, height=950, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         
         # Draw background image on canvas
@@ -191,30 +190,30 @@ class AudioBook:
         else:
             self.canvas.configure(bg=self.colors['bg_primary'])
         
-        # Create main frame (will be embedded in canvas)
-        main_frame = tk.Frame(self.canvas, bg='', padx=15, pady=15)
+        # Create main frame (compact padding)
+        main_frame = tk.Frame(self.canvas, bg='', padx=10, pady=8)
         
-        # Embed frame in canvas so magma shows in empty spaces
-        self.canvas.create_window(0, 0, window=main_frame, anchor='nw', width=900, height=1050)
+        # Embed frame in canvas
+        self.canvas.create_window(0, 0, window=main_frame, anchor='nw', width=900, height=950)
         
-        # Title with ember glow effect
-        title_outer = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=4)
-        title_outer.grid(row=0, column=0, columnspan=3, pady=(0, 15), sticky=(tk.W, tk.E))
+        # Title bar (compact)
+        title_outer = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=3)
+        title_outer.grid(row=0, column=0, columnspan=3, pady=(0, 8), sticky=(tk.W, tk.E))
         
         title_frame = tk.Frame(title_outer, bg=self.colors['bg_secondary'], relief=tk.SUNKEN, borderwidth=2)
-        title_frame.pack(fill=tk.BOTH, expand=True, padx=3, pady=3)
+        title_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
         
         title_label = tk.Label(title_frame, text="AudioBook - Automation System", 
-                              font=('Georgia', 18, 'bold'), bg=self.colors['bg_secondary'], 
-                              fg=self.colors['text_header'], pady=10)
+                              font=('Georgia', 16, 'bold'), bg=self.colors['bg_secondary'], 
+                              fg=self.colors['text_header'], pady=6)
         title_label.pack()
         
-        # Profile management section
-        profile_outer = tk.Frame(main_frame, bg=self.colors['border'], relief=tk.GROOVE, borderwidth=3)
-        profile_outer.grid(row=1, column=0, columnspan=3, pady=10, sticky=(tk.W, tk.E))
+        # Profile management section (compact)
+        profile_outer = tk.Frame(main_frame, bg=self.colors['border'], relief=tk.GROOVE, borderwidth=2)
+        profile_outer.grid(row=1, column=0, columnspan=3, pady=5, sticky=(tk.W, tk.E))
         
-        profile_inner = tk.Frame(profile_outer, bg=self.colors['bg_secondary'], padx=10, pady=8)
-        profile_inner.pack(fill=tk.X, padx=2, pady=2)
+        profile_inner = tk.Frame(profile_outer, bg=self.colors['bg_secondary'], padx=8, pady=5)
+        profile_inner.pack(fill=tk.X, padx=1, pady=1)
         
         tk.Label(profile_inner, text="Perfil:", bg=self.colors['bg_secondary'], 
                 fg=self.colors['text_header'], font=('Georgia', 11, 'bold')).pack(side=tk.LEFT, padx=5)
@@ -241,35 +240,29 @@ class AudioBook:
                  font=('Georgia', 9, 'bold'), relief=tk.RAISED, borderwidth=2,
                  padx=8, pady=3).pack(side=tk.LEFT, padx=3)
         
-        # Status indicator with ember theme
-        self.status_frame = tk.Frame(main_frame)
-        self.status_frame.grid(row=2, column=0, columnspan=3, pady=10)
+        # Status indicator (compact, inline with profile)
+        self.status_frame = tk.Frame(profile_inner, bg=self.colors['bg_secondary'])
+        self.status_frame.pack(side=tk.RIGHT, padx=10)
         
-        status_border = tk.Frame(self.status_frame, bg=self.colors['border'], relief=tk.RAISED, borderwidth=2)
-        status_border.pack(fill=tk.X, padx=5)
-        
-        status_inner = tk.Frame(status_border, bg=self.colors['bg_inset'], padx=10, pady=5)
-        status_inner.pack(fill=tk.X, padx=2, pady=2)
-        
-        self.status_label = tk.Label(status_inner, text="ON", 
-                                     foreground=self.colors['status_on'], bg=self.colors['bg_inset'],
-                                     font=('Georgia', 18, 'bold'))
-        self.status_label.pack(side=tk.LEFT, padx=10)
+        self.status_label = tk.Label(self.status_frame, text="ON", 
+                                     foreground=self.colors['status_on'], bg=self.colors['bg_secondary'],
+                                     font=('Georgia', 14, 'bold'))
+        self.status_label.pack(side=tk.LEFT, padx=5)
         
         if self.power_icon:
-            self.toggle_btn = tk.Button(status_inner, image=self.power_icon, command=self.toggle_active,
-                                        bg=self.colors['status_on'], relief=tk.RAISED, borderwidth=4,
-                                        activebackground=self.colors['focus_glow'], padx=8, pady=8)
+            self.toggle_btn = tk.Button(self.status_frame, image=self.power_icon, command=self.toggle_active,
+                                        bg=self.colors['status_on'], relief=tk.RAISED, borderwidth=3,
+                                        activebackground=self.colors['focus_glow'], padx=4, pady=4)
         else:
-            self.toggle_btn = tk.Button(status_inner, text="[O]", command=self.toggle_active,
+            self.toggle_btn = tk.Button(self.status_frame, text="[O]", command=self.toggle_active,
                                         bg=self.colors['status_on'], fg='#000000',
-                                        font=('Courier', 20, 'bold'), relief=tk.RAISED, borderwidth=4,
-                                        activebackground=self.colors['focus_glow'], padx=15, pady=5)
-        self.toggle_btn.pack(side=tk.LEFT, padx=5)
+                                        font=('Courier', 14, 'bold'), relief=tk.RAISED, borderwidth=3,
+                                        activebackground=self.colors['focus_glow'], padx=8, pady=2)
+        self.toggle_btn.pack(side=tk.LEFT, padx=3)
         
-        # Hotkey list with ember border
-        list_outer = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=4)
-        list_outer.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
+        # Hotkey list (compact)
+        list_outer = tk.Frame(main_frame, bg=self.colors['border_highlight'], relief=tk.RIDGE, borderwidth=3)
+        list_outer.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
         
         list_border = tk.Frame(list_outer, bg=self.colors['border'], relief=tk.RAISED, borderwidth=2)
         list_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
@@ -316,12 +309,12 @@ class AudioBook:
         self.tree.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
         
-        # ========== QUICK CONFIGS - Ember Theme ==========
-        quick_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=4)
-        quick_outer.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
+        # ========== QUICK CONFIGS - Best Sellers ==========
+        quick_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=3)
+        quick_outer.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
         
         quick_border = tk.Frame(quick_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
-        quick_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        quick_border.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
         
         # Title with trophy icon
         quick_title_frame = tk.Frame(quick_border, bg=self.colors['border_highlight'])
@@ -569,29 +562,40 @@ class AudioBook:
         self.auto_mana_delay.trace('w', lambda *args: self.mana_delay_label.config(text=f"{self.auto_mana_delay.get()}ms"))
         
         # ========== RUNEMAKER SECTION ==========
-        runemaker_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=4)
-        runemaker_outer.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
+        runemaker_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=3)
+        runemaker_outer.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
         
         runemaker_border = tk.Frame(runemaker_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
         runemaker_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
         
+        # Title bar with icon
         runemaker_title_frame = tk.Frame(runemaker_border, bg=self.colors['border_highlight'])
         runemaker_title_frame.pack(fill=tk.X, pady=5)
         
+        if self.fire_icon:
+            tk.Label(runemaker_title_frame, image=self.fire_icon, 
+                    bg=self.colors['border_highlight']).pack(side=tk.LEFT, padx=8)
+        
         tk.Label(runemaker_title_frame, text="Runemaker", 
                 bg=self.colors['border_highlight'], fg=self.colors['text_header'],
-                font=('Georgia', 12, 'bold')).pack(side=tk.LEFT, padx=10)
+                font=('Georgia', 12, 'bold')).pack(side=tk.LEFT)
         
-        runemaker_frame = tk.Frame(runemaker_border, bg=self.colors['bg_inset'], padx=10, pady=10)
-        runemaker_frame.pack(fill=tk.X, padx=2, pady=2)
+        if self.fire_icon:
+            tk.Label(runemaker_title_frame, image=self.fire_icon, 
+                    bg=self.colors['border_highlight']).pack(side=tk.RIGHT, padx=8)
+        
+        runemaker_frame = tk.Frame(runemaker_border, bg=self.colors['bg_secondary'], padx=8, pady=8)
+        runemaker_frame.pack(fill=tk.X, padx=3, pady=3)
         
         # Runemaker enabled toggle
         self.runemaker_enabled = tk.BooleanVar(value=False)
         self.runemaker_running = False
+        self.runemaker_paused = False
         self.runemaker_thread = None
+        self.rm_pause_hotkey = tk.StringVar(value="F9")
         
-        rm_toggle_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        rm_toggle_frame.pack(fill=tk.X, pady=5, padx=5)
+        rm_toggle_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'])
+        rm_toggle_frame.pack(fill=tk.X, pady=5)
         
         if self.checkbox_on and self.checkbox_off:
             self.rm_enabled_btn = tk.Checkbutton(rm_toggle_frame, variable=self.runemaker_enabled,
@@ -609,81 +613,107 @@ class AudioBook:
         tk.Label(rm_toggle_frame, text="Ativar Runemaker", font=('Georgia', 10, 'bold'),
                 bg=self.colors['bg_secondary'], fg=self.colors['text_header']).pack(side=tk.LEFT, padx=5)
         
-        self.rm_status_label = tk.Label(rm_toggle_frame, text="[PARADO]", font=('Consolas', 9, 'bold'),
+        self.rm_status_label = tk.Label(rm_toggle_frame, text="[PARADO]", font=('Consolas', 10, 'bold'),
                 bg=self.colors['bg_secondary'], fg=self.colors['status_off'])
-        self.rm_status_label.pack(side=tk.LEFT, padx=10)
+        self.rm_status_label.pack(side=tk.LEFT, padx=15)
         
-        # Potion positions row (like UH - right click potion, left click char)
-        rm_potion_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        rm_potion_frame.pack(fill=tk.X, pady=3, padx=5)
+        # Config grid frame for aligned layout
+        rm_config_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_inset'], relief=tk.SUNKEN, borderwidth=1)
+        rm_config_frame.pack(fill=tk.X, pady=5, padx=3)
         
-        tk.Label(rm_potion_frame, text="Potion:", font=('Georgia', 9, 'bold'),
-                bg=self.colors['bg_secondary'], fg=self.colors['text_body']).pack(side=tk.LEFT, padx=5)
+        # Row 1: Potion positions
+        rm_row1 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
+        rm_row1.pack(fill=tk.X, pady=4, padx=8)
+        
+        tk.Label(rm_row1, text="Potion:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
         
         if self.location_icon:
-            tk.Button(rm_potion_frame, image=self.location_icon, command=self.record_runemaker_potion,
+            tk.Button(rm_row1, image=self.location_icon, command=self.record_runemaker_potion,
                      bg=self.colors['button_default'], relief=tk.RAISED, borderwidth=2, 
-                     activebackground=self.colors['button_hover'], padx=3, pady=3).pack(side=tk.LEFT, padx=2)
+                     activebackground=self.colors['button_hover'], padx=4, pady=2).pack(side=tk.LEFT, padx=5)
         else:
-            tk.Button(rm_potion_frame, text="[*] Gravar", command=self.record_runemaker_potion,
-                     bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Arial', 9),
-                     relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover']).pack(side=tk.LEFT, padx=2)
+            tk.Button(rm_row1, text="Gravar", command=self.record_runemaker_potion,
+                     bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Arial', 9, 'bold'),
+                     relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'],
+                     padx=8, pady=2).pack(side=tk.LEFT, padx=5)
         
-        self.rm_potion_status = tk.Label(rm_potion_frame, text="[Nao gravado]", font=('Consolas', 8),
-                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued'])
+        self.rm_potion_status = tk.Label(rm_row1, text="[Nao gravado]", font=('Consolas', 9, 'bold'), width=18,
+                bg=self.colors['bg_inset'], fg=self.colors['text_subdued'])
         self.rm_potion_status.pack(side=tk.LEFT, padx=5)
         
-        tk.Label(rm_potion_frame, text="(clique direito potion + esquerdo char)", font=('Consolas', 8),
-                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued']).pack(side=tk.LEFT, padx=5)
+        tk.Label(rm_row1, text="(direito potion + esquerdo char)", font=('Consolas', 8),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=5)
         
-        # Hotkey spell row
-        rm_spell_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        rm_spell_frame.pack(fill=tk.X, pady=3, padx=5)
+        # Row 2: Spell hotkey
+        rm_row2 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
+        rm_row2.pack(fill=tk.X, pady=4, padx=8)
         
-        tk.Label(rm_spell_frame, text="Hotkey Spell:", font=('Georgia', 9),
-                bg=self.colors['bg_secondary'], fg=self.colors['text_body']).pack(side=tk.LEFT, padx=5)
+        tk.Label(rm_row2, text="Spell:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
         
         self.rm_spell_hotkey = tk.StringVar(value="F6")
-        self.rm_spell_btn = tk.Button(rm_spell_frame, textvariable=self.rm_spell_hotkey, width=8,
+        self.rm_spell_btn = tk.Button(rm_row2, textvariable=self.rm_spell_hotkey, width=6,
                   command=lambda: self.change_runemaker_hotkey('spell'),
-                  bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Consolas', 9, 'bold'),
+                  bg=self.colors['selection'], fg='#FFFFFF', font=('Consolas', 10, 'bold'),
                   relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'])
         self.rm_spell_btn.pack(side=tk.LEFT, padx=5)
         
-        tk.Label(rm_spell_frame, text="(tecla pra castar spell da runa)", font=('Consolas', 8),
-                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued']).pack(side=tk.LEFT, padx=5)
+        tk.Label(rm_row2, text="(tecla pra castar spell da runa)", font=('Consolas', 8),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=10)
         
-        # Delay between actions
-        rm_delay_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        rm_delay_frame.pack(fill=tk.X, pady=3, padx=5)
+        # Row 3: Delay slider
+        rm_row3 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
+        rm_row3.pack(fill=tk.X, pady=4, padx=8)
         
-        tk.Label(rm_delay_frame, text="Delay entre acoes (ms):", font=('Georgia', 9),
-                bg=self.colors['bg_secondary'], fg=self.colors['text_body']).pack(side=tk.LEFT, padx=5)
+        tk.Label(rm_row3, text="Delay:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
         
         self.rm_delay = tk.IntVar(value=500)
-        tk.Scale(rm_delay_frame, from_=100, to=2000, variable=self.rm_delay, orient=tk.HORIZONTAL,
-                length=150, bg=self.colors['bg_secondary'], fg=self.colors['text_body'],
-                troughcolor=self.colors['bg_inset'], highlightthickness=0).pack(side=tk.LEFT, padx=5)
+        tk.Scale(rm_row3, from_=100, to=2000, variable=self.rm_delay, orient=tk.HORIZONTAL,
+                length=180, bg=self.colors['bg_inset'], fg=self.colors['text_body'],
+                troughcolor=self.colors['bg_primary'], highlightthickness=0, 
+                sliderrelief=tk.RAISED).pack(side=tk.LEFT, padx=5)
         
-        self.rm_delay_label = tk.Label(rm_delay_frame, text=f"{self.rm_delay.get()}ms", width=6,
-                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued'], font=('Consolas', 9))
-        self.rm_delay_label.pack(side=tk.LEFT)
+        self.rm_delay_label = tk.Label(rm_row3, text="500ms", width=7,
+                bg=self.colors['bg_inset'], fg=self.colors['status_on'], font=('Consolas', 10, 'bold'))
+        self.rm_delay_label.pack(side=tk.LEFT, padx=5)
         self.rm_delay.trace('w', lambda *args: self.rm_delay_label.config(text=f"{self.rm_delay.get()}ms"))
         
-        # Cycle info
-        rm_info_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_inset'])
-        rm_info_frame.pack(fill=tk.X, pady=5, padx=5)
+        # Row 4: Pause hotkey
+        rm_row4 = tk.Frame(rm_config_frame, bg=self.colors['bg_inset'])
+        rm_row4.pack(fill=tk.X, pady=4, padx=8)
         
-        tk.Label(rm_info_frame, text="Ciclo: 4x(3 potions + 1 spell) -> 1x(20 potions + 5 spells) -> repete", 
-                font=('Consolas', 8), bg=self.colors['bg_inset'], fg=self.colors['text_subdued']).pack()
+        tk.Label(rm_row4, text="Pausar:", font=('Georgia', 10, 'bold'), width=12, anchor='w',
+                bg=self.colors['bg_inset'], fg=self.colors['text_body']).pack(side=tk.LEFT)
         
-        self.rm_cycle_label = tk.Label(rm_info_frame, text="", font=('Consolas', 9, 'bold'),
-                bg=self.colors['bg_inset'], fg=self.colors['status_on'])
-        self.rm_cycle_label.pack()
+        self.rm_pause_btn = tk.Button(rm_row4, textvariable=self.rm_pause_hotkey, width=6,
+                  command=self.change_runemaker_pause_hotkey,
+                  bg=self.colors['button_default'], fg='#FFFFFF', font=('Consolas', 10, 'bold'),
+                  relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'])
+        self.rm_pause_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.rm_pause_status = tk.Label(rm_row4, text="", font=('Consolas', 9, 'bold'), width=12,
+                bg=self.colors['bg_inset'], fg=self.colors['status_off'])
+        self.rm_pause_status.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(rm_row4, text="(pressione pra pausar/continuar)", font=('Consolas', 8),
+                bg=self.colors['bg_inset'], fg='#8B7355').pack(side=tk.LEFT, padx=5)
+        
+        # Cycle info box
+        rm_info_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_primary'], relief=tk.GROOVE, borderwidth=2)
+        rm_info_frame.pack(fill=tk.X, pady=5, padx=3)
+        
+        tk.Label(rm_info_frame, text="Ciclo: 2x(3 pot + 1 spell)  -->  1x(3 pot + 3 spell)  -->  repete", 
+                font=('Consolas', 9), bg=self.colors['bg_primary'], fg=self.colors['text_body'], pady=3).pack()
+        
+        self.rm_cycle_label = tk.Label(rm_info_frame, text="", font=('Consolas', 10, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['status_on'])
+        self.rm_cycle_label.pack(pady=2)
         
         # Movement mode toggle
         movement_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        movement_frame.grid(row=6, column=0, columnspan=3, pady=8)
+        movement_frame.grid(row=5, column=0, columnspan=3, pady=4)
         
         self.instant_movement = tk.BooleanVar(value=False)  # False = gradual, True = instant
         
@@ -699,30 +729,9 @@ class AudioBook:
                 bg=self.colors['bg_secondary'], fg=self.colors['text_subdued'], 
                 font=('Consolas', 8, 'italic')).pack(side=tk.LEFT, padx=5)
         
-        # Calibration button
-        calib_frame = tk.Frame(main_frame)
-        calib_frame.grid(row=7, column=0, columnspan=3, pady=8)
-        
-        # Calibration button with sword icon
-        calib_btn_frame = tk.Frame(calib_frame)
-        calib_btn_frame.pack(padx=5)
-        
-        calib_btn = tk.Button(calib_btn_frame, command=self.calibrate_auto_target,
-                             bg=self.colors['button_default'], fg=self.colors['text_body'], 
-                             font=('Georgia', 10, 'bold'), relief=tk.RAISED, borderwidth=2, 
-                             padx=15, pady=5, activebackground=self.colors['button_hover'],
-                             compound=tk.LEFT)
-        
-        if self.sword_icon:
-            calib_btn.config(image=self.sword_icon, text=" Calibrar Auto-Target")
-        else:
-            calib_btn.config(text="[T] Calibrar Auto-Target")
-        
-        calib_btn.pack()
-        
         # Custom hotkey management buttons
         button_frame = tk.Frame(main_frame)
-        button_frame.grid(row=7, column=0, columnspan=3, pady=10)
+        button_frame.grid(row=6, column=0, columnspan=3, pady=6)
         
         tk.Button(button_frame, text="[+] Custom Hotkey", command=self.add_hotkey_dialog,
                  bg=self.colors['selection'], fg=self.colors['text_header'], font=('Georgia', 10, 'bold'),
@@ -974,8 +983,66 @@ class AudioBook:
                  bg=self.colors['button_destructive'], fg=self.colors['text_body'],
                  font=('Georgia', 10), padx=15, pady=3).pack()
     
+    def change_runemaker_pause_hotkey(self):
+        """Change runemaker pause hotkey"""
+        dialog = self.create_ember_dialog("Alterar Hotkey Pausar", 400, 200)
+        
+        tk.Label(dialog, text="Pressione a nova hotkey...", font=('Georgia', 12, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['text_header']).pack(pady=20)
+        
+        hotkey_var = tk.StringVar(value="Aguardando...")
+        tk.Label(dialog, textvariable=hotkey_var, font=('Consolas', 14, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['status_on']).pack(pady=10)
+        
+        pressed_keys = {'key': None}
+        
+        def on_press(key):
+            try:
+                k = key.char.lower() if hasattr(key, 'char') and key.char else key.name.lower()
+                pressed_keys['key'] = k.upper()
+                hotkey_var.set(pressed_keys['key'])
+            except:
+                pass
+        
+        def on_release(key):
+            if pressed_keys['key']:
+                return False
+        
+        listener = KeyboardListener(on_press=on_press, on_release=on_release)
+        listener.start()
+        
+        def save_hotkey():
+            if pressed_keys['key']:
+                listener.stop()
+                self.rm_pause_hotkey.set(pressed_keys['key'])
+                self.save_runemaker_config()
+                dialog.destroy()
+        
+        tk.Button(dialog, text="Salvar", command=save_hotkey,
+                 bg=self.colors['button_default'], fg=self.colors['text_body'],
+                 font=('Georgia', 10, 'bold'), padx=20, pady=5).pack(pady=15)
+        tk.Button(dialog, text="Cancelar", command=lambda: [listener.stop(), dialog.destroy()],
+                 bg=self.colors['button_destructive'], fg=self.colors['text_body'],
+                 font=('Georgia', 10), padx=15, pady=3).pack()
+    
+    def toggle_runemaker_pause(self):
+        """Toggle pause state for runemaker"""
+        if not self.runemaker_running:
+            return
+        
+        self.runemaker_paused = not self.runemaker_paused
+        
+        if self.runemaker_paused:
+            self.rm_status_label.config(text="[PAUSADO]", fg='#FFA500')
+            self.rm_pause_status.config(text="[PAUSADO]", fg='#FFA500')
+            print("[RUNEMAKER] Pausado!")
+        else:
+            self.rm_status_label.config(text="[RODANDO]", fg=self.colors['status_on'])
+            self.rm_pause_status.config(text="", fg=self.colors['status_off'])
+            print("[RUNEMAKER] Continuando!")
+    
     def execute_runemaker_cycle(self):
-        """Execute the runemaker cycle: 4x(3pot+1spell) + 1x(20pot+5spell) repeat"""
+        """Execute the runemaker cycle: 2x(3pot+1spell) + 1x(3pot+3spell) repeat"""
         keyboard_ctrl = KeyboardController()
         cycle_count = 0
         
@@ -1047,43 +1114,58 @@ class AudioBook:
             delay = self.rm_delay.get() / 1000.0
             spell_key = self.rm_spell_hotkey.get()
             
-            # Phase 1: 4 iterations of (3 potions + 1 spell)
-            for i in range(4):
+            # Phase 1: 2x (3 potions + 1 spell)
+            for i in range(2):
                 if not self.runemaker_running:
                     return
                 
-                self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 1: {i+1}/4 (3pot+1spell)")
+                # Check if paused
+                while self.runemaker_paused and self.runemaker_running:
+                    time.sleep(0.1)
+                
+                self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 1: {i+1}/2 (3pot+1spell)")
                 
                 # 3 potions (mouse clicks)
                 for p in range(3):
                     if not self.runemaker_running:
                         return
+                    while self.runemaker_paused and self.runemaker_running:
+                        time.sleep(0.1)
                     use_potion()
                     time.sleep(delay)
                 
                 # 1 spell (keypress)
                 if not self.runemaker_running:
                     return
+                while self.runemaker_paused and self.runemaker_running:
+                    time.sleep(0.1)
                 press_key(spell_key)
                 time.sleep(delay)
             
-            # Phase 2: 1 iteration of (20 potions + 5 spells)
+            # Phase 2: 1x (3 potions + 3 spells) - to burn mana
             if not self.runemaker_running:
                 return
             
-            self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 2: 20pot+5spell")
+            while self.runemaker_paused and self.runemaker_running:
+                time.sleep(0.1)
             
-            # 20 potions (mouse clicks)
-            for p in range(20):
+            self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 2: 3pot+3spell (gastar mana)")
+            
+            # 3 potions (mouse clicks)
+            for p in range(3):
                 if not self.runemaker_running:
                     return
+                while self.runemaker_paused and self.runemaker_running:
+                    time.sleep(0.1)
                 use_potion()
                 time.sleep(delay)
             
-            # 5 spells (keypresses)
-            for s in range(5):
+            # 3 spells (keypresses) - to burn mana
+            for s in range(3):
                 if not self.runemaker_running:
                     return
+                while self.runemaker_paused and self.runemaker_running:
+                    time.sleep(0.1)
                 press_key(spell_key)
                 time.sleep(delay)
             
@@ -1102,6 +1184,7 @@ class AudioBook:
         self.config['runemaker'] = {
             'enabled': self.runemaker_enabled.get(),
             'spell_hotkey': self.rm_spell_hotkey.get(),
+            'pause_hotkey': self.rm_pause_hotkey.get(),
             'delay': self.rm_delay.get(),
             'potion_clicks': existing_clicks
         }
@@ -1114,6 +1197,8 @@ class AudioBook:
         
         if hasattr(self, 'rm_spell_hotkey'):
             self.rm_spell_hotkey.set(rm.get('spell_hotkey', 'F6'))
+        if hasattr(self, 'rm_pause_hotkey'):
+            self.rm_pause_hotkey.set(rm.get('pause_hotkey', 'F9'))
         if hasattr(self, 'rm_delay'):
             self.rm_delay.set(rm.get('delay', 500))
         
@@ -2838,6 +2923,14 @@ Pressione 'Iniciar' quando estiver pronto!"""
                             # Execute Auto MANA
                             threading.Thread(target=self.execute_quick_mana, daemon=True).start()
                 
+                # Check Runemaker Pause Hotkey
+                if hasattr(self, 'rm_pause_hotkey') and self.runemaker_running:
+                    pause_hotkey = self.rm_pause_hotkey.get().lower()
+                    if current_combo == pause_hotkey:
+                        if 'rm_pause' not in self.triggered_quick_keys:
+                            self.triggered_quick_keys.add('rm_pause')
+                            self.toggle_runemaker_pause()
+                
                 # Find all matching custom hotkeys (where hotkey is subset of currently pressed)
                 matching_hotkeys = []
                 for idx, hk in enumerate(self.hotkeys):
@@ -2884,6 +2977,12 @@ Pressione 'Iniciar' quando estiver pronto!"""
                         hotkey = quick_configs[config_key].get('hotkey', '').lower()
                         if hotkey and hotkey != current_combo:
                             self.triggered_quick_keys.discard(hotkey)
+                
+                # Reset Runemaker pause hotkey
+                if hasattr(self, 'rm_pause_hotkey'):
+                    pause_hotkey = self.rm_pause_hotkey.get().lower()
+                    if pause_hotkey != current_combo:
+                        self.triggered_quick_keys.discard('rm_pause')
                 
                 # Reset triggered state for custom hotkeys that are no longer fully pressed
                 for idx, hk in enumerate(self.hotkeys):
