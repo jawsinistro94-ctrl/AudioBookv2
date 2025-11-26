@@ -28,7 +28,7 @@ class AudioBook:
     def __init__(self, root):
         self.root = root
         self.root.title("AudioBook - Automation System")
-        self.root.geometry("900x1050")  # Larger height to show all controls
+        self.root.geometry("900x1200")  # Larger height to show all controls including Runemaker
         
         # Harmonized EMBER/BRASAS color palette
         self.colors = {
@@ -568,9 +568,122 @@ class AudioBook:
         self.mana_delay_label.pack(side=tk.LEFT)
         self.auto_mana_delay.trace('w', lambda *args: self.mana_delay_label.config(text=f"{self.auto_mana_delay.get()}ms"))
         
+        # ========== RUNEMAKER SECTION ==========
+        runemaker_outer = tk.Frame(main_frame, bg=self.colors['focus_glow'], relief=tk.RIDGE, borderwidth=4)
+        runemaker_outer.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
+        
+        runemaker_border = tk.Frame(runemaker_outer, bg=self.colors['border_highlight'], relief=tk.RAISED, borderwidth=2)
+        runemaker_border.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+        
+        runemaker_title_frame = tk.Frame(runemaker_border, bg=self.colors['border_highlight'])
+        runemaker_title_frame.pack(fill=tk.X, pady=5)
+        
+        tk.Label(runemaker_title_frame, text="Runemaker", 
+                bg=self.colors['border_highlight'], fg=self.colors['text_header'],
+                font=('Georgia', 12, 'bold')).pack(side=tk.LEFT, padx=10)
+        
+        runemaker_frame = tk.Frame(runemaker_border, bg=self.colors['bg_inset'], padx=10, pady=10)
+        runemaker_frame.pack(fill=tk.X, padx=2, pady=2)
+        
+        # Runemaker enabled toggle
+        self.runemaker_enabled = tk.BooleanVar(value=False)
+        self.runemaker_running = False
+        self.runemaker_thread = None
+        
+        rm_toggle_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
+        rm_toggle_frame.pack(fill=tk.X, pady=5, padx=5)
+        
+        if self.checkbox_on and self.checkbox_off:
+            self.rm_enabled_btn = tk.Checkbutton(rm_toggle_frame, variable=self.runemaker_enabled,
+                          command=self.toggle_runemaker,
+                          image=self.checkbox_on if self.runemaker_enabled.get() else self.checkbox_off,
+                          bg=self.colors['bg_secondary'], activebackground=self.colors['bg_secondary'],
+                          selectcolor=self.colors['bg_secondary'],
+                          indicatoron=False, borderwidth=0, relief=tk.FLAT)
+            self.rm_enabled_btn.pack(side=tk.LEFT, padx=5)
+        else:
+            tk.Checkbutton(rm_toggle_frame, variable=self.runemaker_enabled, command=self.toggle_runemaker,
+                          bg=self.colors['bg_secondary'], activebackground=self.colors['bg_inset'], 
+                          selectcolor=self.colors['focus_glow']).pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(rm_toggle_frame, text="Ativar Runemaker", font=('Georgia', 10, 'bold'),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_header']).pack(side=tk.LEFT, padx=5)
+        
+        self.rm_status_label = tk.Label(rm_toggle_frame, text="[PARADO]", font=('Consolas', 9, 'bold'),
+                bg=self.colors['bg_secondary'], fg=self.colors['status_off'])
+        self.rm_status_label.pack(side=tk.LEFT, padx=10)
+        
+        # Potion positions row (like UH - right click potion, left click char)
+        rm_potion_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
+        rm_potion_frame.pack(fill=tk.X, pady=3, padx=5)
+        
+        tk.Label(rm_potion_frame, text="Potion:", font=('Georgia', 9, 'bold'),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_body']).pack(side=tk.LEFT, padx=5)
+        
+        if self.location_icon:
+            tk.Button(rm_potion_frame, image=self.location_icon, command=self.record_runemaker_potion,
+                     bg=self.colors['button_default'], relief=tk.RAISED, borderwidth=2, 
+                     activebackground=self.colors['button_hover'], padx=3, pady=3).pack(side=tk.LEFT, padx=2)
+        else:
+            tk.Button(rm_potion_frame, text="[*] Gravar", command=self.record_runemaker_potion,
+                     bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Arial', 9),
+                     relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover']).pack(side=tk.LEFT, padx=2)
+        
+        self.rm_potion_status = tk.Label(rm_potion_frame, text="[Nao gravado]", font=('Consolas', 8),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued'])
+        self.rm_potion_status.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(rm_potion_frame, text="(clique direito potion + esquerdo char)", font=('Consolas', 8),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued']).pack(side=tk.LEFT, padx=5)
+        
+        # Hotkey spell row
+        rm_spell_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
+        rm_spell_frame.pack(fill=tk.X, pady=3, padx=5)
+        
+        tk.Label(rm_spell_frame, text="Hotkey Spell:", font=('Georgia', 9),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_body']).pack(side=tk.LEFT, padx=5)
+        
+        self.rm_spell_hotkey = tk.StringVar(value="F6")
+        self.rm_spell_btn = tk.Button(rm_spell_frame, textvariable=self.rm_spell_hotkey, width=8,
+                  command=lambda: self.change_runemaker_hotkey('spell'),
+                  bg=self.colors['button_default'], fg=self.colors['text_body'], font=('Consolas', 9, 'bold'),
+                  relief=tk.RAISED, borderwidth=2, activebackground=self.colors['button_hover'])
+        self.rm_spell_btn.pack(side=tk.LEFT, padx=5)
+        
+        tk.Label(rm_spell_frame, text="(tecla pra castar spell da runa)", font=('Consolas', 8),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued']).pack(side=tk.LEFT, padx=5)
+        
+        # Delay between actions
+        rm_delay_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
+        rm_delay_frame.pack(fill=tk.X, pady=3, padx=5)
+        
+        tk.Label(rm_delay_frame, text="Delay entre acoes (ms):", font=('Georgia', 9),
+                bg=self.colors['bg_secondary'], fg=self.colors['text_body']).pack(side=tk.LEFT, padx=5)
+        
+        self.rm_delay = tk.IntVar(value=500)
+        tk.Scale(rm_delay_frame, from_=100, to=2000, variable=self.rm_delay, orient=tk.HORIZONTAL,
+                length=150, bg=self.colors['bg_secondary'], fg=self.colors['text_body'],
+                troughcolor=self.colors['bg_inset'], highlightthickness=0).pack(side=tk.LEFT, padx=5)
+        
+        self.rm_delay_label = tk.Label(rm_delay_frame, text=f"{self.rm_delay.get()}ms", width=6,
+                bg=self.colors['bg_secondary'], fg=self.colors['text_subdued'], font=('Consolas', 9))
+        self.rm_delay_label.pack(side=tk.LEFT)
+        self.rm_delay.trace('w', lambda *args: self.rm_delay_label.config(text=f"{self.rm_delay.get()}ms"))
+        
+        # Cycle info
+        rm_info_frame = tk.Frame(runemaker_frame, bg=self.colors['bg_inset'])
+        rm_info_frame.pack(fill=tk.X, pady=5, padx=5)
+        
+        tk.Label(rm_info_frame, text="Ciclo: 4x(3 potions + 1 spell) -> 1x(20 potions + 5 spells) -> repete", 
+                font=('Consolas', 8), bg=self.colors['bg_inset'], fg=self.colors['text_subdued']).pack()
+        
+        self.rm_cycle_label = tk.Label(rm_info_frame, text="", font=('Consolas', 9, 'bold'),
+                bg=self.colors['bg_inset'], fg=self.colors['status_on'])
+        self.rm_cycle_label.pack()
+        
         # Movement mode toggle
         movement_frame = tk.Frame(main_frame, bg=self.colors['bg_secondary'], relief=tk.GROOVE, borderwidth=2)
-        movement_frame.grid(row=5, column=0, columnspan=3, pady=8)
+        movement_frame.grid(row=6, column=0, columnspan=3, pady=8)
         
         self.instant_movement = tk.BooleanVar(value=False)  # False = gradual, True = instant
         
@@ -588,7 +701,7 @@ class AudioBook:
         
         # Calibration button
         calib_frame = tk.Frame(main_frame)
-        calib_frame.grid(row=6, column=0, columnspan=3, pady=8)
+        calib_frame.grid(row=7, column=0, columnspan=3, pady=8)
         
         # Calibration button with sword icon
         calib_btn_frame = tk.Frame(calib_frame)
@@ -638,6 +751,9 @@ class AudioBook:
         
         # Load quick configs from saved data
         self.load_quick_configs()
+        
+        # Load runemaker config
+        self.load_runemaker_config()
         
         self.refresh_tree()
     
@@ -727,6 +843,294 @@ class AudioBook:
         }
         
         self.save_config()
+    
+    def toggle_runemaker(self):
+        """Toggle runemaker on/off"""
+        if self.runemaker_enabled.get():
+            # Starting runemaker
+            if self.runemaker_running:
+                return  # Already running
+            
+            self.runemaker_running = True
+            self.rm_status_label.config(text="[RODANDO]", fg=self.colors['status_on'])
+            if hasattr(self, 'rm_enabled_btn'):
+                self.update_checkbox_icon(self.rm_enabled_btn, self.runemaker_enabled)
+            
+            # Start runemaker thread
+            self.runemaker_thread = threading.Thread(target=self.execute_runemaker_cycle, daemon=True)
+            self.runemaker_thread.start()
+            print("[RUNEMAKER] Iniciado!")
+        else:
+            # Stopping runemaker
+            self.runemaker_running = False
+            self.rm_status_label.config(text="[PARADO]", fg=self.colors['status_off'])
+            if hasattr(self, 'rm_enabled_btn'):
+                self.update_checkbox_icon(self.rm_enabled_btn, self.runemaker_enabled)
+            self.rm_cycle_label.config(text="")
+            print("[RUNEMAKER] Parado!")
+        
+        self.save_runemaker_config()
+    
+    def record_runemaker_potion(self):
+        """Record potion and character positions for runemaker (like UH)"""
+        dialog = self.create_ember_dialog("Gravar Posicoes - Potion", 450, 300)
+        
+        tk.Label(dialog, text="Gravar Posicoes da Potion", font=('Georgia', 12, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['text_header']).pack(pady=10)
+        
+        instruction = """1. Clique em "Iniciar Gravacao"
+2. Clique na POTION (sera clique direito)
+3. Clique no seu PERSONAGEM (sera clique esquerdo)"""
+        
+        tk.Label(dialog, text=instruction, font=('Consolas', 9), justify=tk.LEFT,
+                bg=self.colors['bg_primary'], fg=self.colors['text_body']).pack(pady=10)
+        
+        status_var = tk.StringVar(value="Pronto para gravar...")
+        tk.Label(dialog, textvariable=status_var, font=('Consolas', 10, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['status_on']).pack(pady=10)
+        
+        clicks_recorded = []
+        
+        def on_click(x, y, button, pressed):
+            if pressed and len(clicks_recorded) < 2:
+                clicks_recorded.append({'x': x, 'y': y})
+                if len(clicks_recorded) == 1:
+                    status_var.set(f"Potion: ({x}, {y})\nAgora clique no PERSONAGEM...")
+                elif len(clicks_recorded) == 2:
+                    status_var.set(f"Potion: ({clicks_recorded[0]['x']}, {clicks_recorded[0]['y']})\nChar: ({x}, {y})\nPronto!")
+                    return False
+        
+        def start_recording():
+            clicks_recorded.clear()
+            status_var.set("Clique na POTION...")
+            dialog.after(100, lambda: mouse.Listener(on_click=on_click).start())
+        
+        tk.Button(dialog, text="Iniciar Gravacao", command=start_recording,
+                 bg=self.colors['button_default'], fg=self.colors['text_body'],
+                 font=('Georgia', 10, 'bold'), padx=15, pady=5).pack(pady=10)
+        
+        def save_positions():
+            if len(clicks_recorded) < 2:
+                self.ember_warning("Incompleto", "Grave as 2 posicoes primeiro!")
+                return
+            
+            # Save to config
+            if 'runemaker' not in self.config:
+                self.config['runemaker'] = {}
+            self.config['runemaker']['potion_clicks'] = clicks_recorded
+            self.save_config()
+            
+            self.rm_potion_status.config(text=f"[OK] ({clicks_recorded[0]['x']},{clicks_recorded[0]['y']})", 
+                                         fg=self.colors['status_on'])
+            dialog.destroy()
+            self.ember_info("Sucesso", "Posicoes da potion gravadas!")
+        
+        tk.Button(dialog, text="Salvar", command=save_positions,
+                 bg=self.colors['selection'], fg=self.colors['text_header'],
+                 font=('Georgia', 10, 'bold'), padx=20, pady=5).pack(pady=5)
+        tk.Button(dialog, text="Cancelar", command=dialog.destroy,
+                 bg=self.colors['button_destructive'], fg=self.colors['text_body'],
+                 font=('Georgia', 9), padx=15, pady=3).pack()
+    
+    def change_runemaker_hotkey(self, hotkey_type):
+        """Change runemaker spell hotkey"""
+        dialog = self.create_ember_dialog("Alterar Hotkey Spell", 400, 200)
+        
+        tk.Label(dialog, text="Pressione a nova hotkey...", font=('Georgia', 12, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['text_header']).pack(pady=20)
+        
+        hotkey_var = tk.StringVar(value="Aguardando...")
+        tk.Label(dialog, textvariable=hotkey_var, font=('Consolas', 14, 'bold'),
+                bg=self.colors['bg_primary'], fg=self.colors['status_on']).pack(pady=10)
+        
+        pressed_keys = {'key': None}
+        
+        def on_press(key):
+            try:
+                k = key.char.lower() if hasattr(key, 'char') and key.char else key.name.lower()
+                pressed_keys['key'] = k.upper()
+                hotkey_var.set(pressed_keys['key'])
+            except:
+                pass
+        
+        def on_release(key):
+            if pressed_keys['key']:
+                return False
+        
+        listener = KeyboardListener(on_press=on_press, on_release=on_release)
+        listener.start()
+        
+        def save_hotkey():
+            if pressed_keys['key']:
+                listener.stop()
+                self.rm_spell_hotkey.set(pressed_keys['key'])
+                self.save_runemaker_config()
+                dialog.destroy()
+        
+        tk.Button(dialog, text="Salvar", command=save_hotkey,
+                 bg=self.colors['button_default'], fg=self.colors['text_body'],
+                 font=('Georgia', 10, 'bold'), padx=20, pady=5).pack(pady=15)
+        tk.Button(dialog, text="Cancelar", command=lambda: [listener.stop(), dialog.destroy()],
+                 bg=self.colors['button_destructive'], fg=self.colors['text_body'],
+                 font=('Georgia', 10), padx=15, pady=3).pack()
+    
+    def execute_runemaker_cycle(self):
+        """Execute the runemaker cycle: 4x(3pot+1spell) + 1x(20pot+5spell) repeat"""
+        keyboard_ctrl = KeyboardController()
+        cycle_count = 0
+        
+        def press_key(key_name):
+            """Press a key using pynput"""
+            try:
+                key_name_lower = key_name.lower()
+                if key_name_lower.startswith('f') and key_name_lower[1:].isdigit():
+                    fn = int(key_name_lower[1:])
+                    key = getattr(Key, f'f{fn}', None)
+                    if key:
+                        keyboard_ctrl.press(key)
+                        keyboard_ctrl.release(key)
+                        return True
+                else:
+                    keyboard_ctrl.press(key_name_lower)
+                    keyboard_ctrl.release(key_name_lower)
+                    return True
+            except Exception as e:
+                print(f"[RUNEMAKER] Erro ao pressionar tecla {key_name}: {e}")
+                return False
+        
+        def use_potion():
+            """Use potion: right-click potion, left-click character (like UH)"""
+            try:
+                rm_config = self.config.get('runemaker', {})
+                clicks = rm_config.get('potion_clicks', [])
+                if len(clicks) < 2:
+                    print("[RUNEMAKER] Posicoes da potion nao gravadas!")
+                    return False
+                
+                # Right-click on potion
+                x1, y1 = clicks[0]['x'], clicks[0]['y']
+                if self.instant_movement.get():
+                    pyautogui.moveTo(x1, y1, duration=0)
+                else:
+                    pyautogui.moveTo(x1, y1, duration=random.uniform(0.04, 0.08))
+                    time.sleep(random.uniform(0.01, 0.03))
+                pyautogui.rightClick(x1, y1)
+                
+                # Small delay
+                time.sleep(random.uniform(0.05, 0.10))
+                
+                # Left-click on character
+                x2, y2 = clicks[1]['x'], clicks[1]['y']
+                if self.instant_movement.get():
+                    pyautogui.moveTo(x2, y2, duration=0)
+                else:
+                    pyautogui.moveTo(x2, y2, duration=random.uniform(0.04, 0.08))
+                    time.sleep(random.uniform(0.01, 0.03))
+                pyautogui.leftClick(x2, y2)
+                
+                return True
+            except Exception as e:
+                print(f"[RUNEMAKER] Erro ao usar potion: {e}")
+                return False
+        
+        # Verify potion positions are recorded
+        rm_config = self.config.get('runemaker', {})
+        if not rm_config.get('potion_clicks'):
+            print("[RUNEMAKER] ERRO: Grave as posicoes da potion primeiro!")
+            self.runemaker_enabled.set(False)
+            self.runemaker_running = False
+            self.rm_status_label.config(text="[ERRO: Grave potion]", fg='#FF6B35')
+            return
+        
+        while self.runemaker_running:
+            cycle_count += 1
+            delay = self.rm_delay.get() / 1000.0
+            spell_key = self.rm_spell_hotkey.get()
+            
+            # Phase 1: 4 iterations of (3 potions + 1 spell)
+            for i in range(4):
+                if not self.runemaker_running:
+                    return
+                
+                self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 1: {i+1}/4 (3pot+1spell)")
+                
+                # 3 potions (mouse clicks)
+                for p in range(3):
+                    if not self.runemaker_running:
+                        return
+                    use_potion()
+                    time.sleep(delay)
+                
+                # 1 spell (keypress)
+                if not self.runemaker_running:
+                    return
+                press_key(spell_key)
+                time.sleep(delay)
+            
+            # Phase 2: 1 iteration of (20 potions + 5 spells)
+            if not self.runemaker_running:
+                return
+            
+            self.rm_cycle_label.config(text=f"Ciclo {cycle_count} - Fase 2: 20pot+5spell")
+            
+            # 20 potions (mouse clicks)
+            for p in range(20):
+                if not self.runemaker_running:
+                    return
+                use_potion()
+                time.sleep(delay)
+            
+            # 5 spells (keypresses)
+            for s in range(5):
+                if not self.runemaker_running:
+                    return
+                press_key(spell_key)
+                time.sleep(delay)
+            
+            print(f"[RUNEMAKER] Ciclo {cycle_count} completo!")
+        
+        self.rm_cycle_label.config(text="")
+    
+    def save_runemaker_config(self):
+        """Save runemaker settings to config"""
+        if 'runemaker' not in self.config:
+            self.config['runemaker'] = {}
+        
+        # Preserve existing potion_clicks if they exist
+        existing_clicks = self.config.get('runemaker', {}).get('potion_clicks', [])
+        
+        self.config['runemaker'] = {
+            'enabled': self.runemaker_enabled.get(),
+            'spell_hotkey': self.rm_spell_hotkey.get(),
+            'delay': self.rm_delay.get(),
+            'potion_clicks': existing_clicks
+        }
+        
+        self.save_config()
+    
+    def load_runemaker_config(self):
+        """Load runemaker settings from config"""
+        rm = self.config.get('runemaker', {})
+        
+        if hasattr(self, 'rm_spell_hotkey'):
+            self.rm_spell_hotkey.set(rm.get('spell_hotkey', 'F6'))
+        if hasattr(self, 'rm_delay'):
+            self.rm_delay.set(rm.get('delay', 500))
+        
+        # Update potion status label if positions are saved
+        if hasattr(self, 'rm_potion_status'):
+            clicks = rm.get('potion_clicks', [])
+            if clicks and len(clicks) >= 2:
+                self.rm_potion_status.config(text=f"[OK] ({clicks[0]['x']},{clicks[0]['y']})", 
+                                             fg=self.colors['status_on'])
+            else:
+                self.rm_potion_status.config(text="[Nao gravado]", fg=self.colors['text_subdued'])
+        
+        # Don't auto-enable on load for safety
+        if hasattr(self, 'runemaker_enabled'):
+            self.runemaker_enabled.set(False)
+        if hasattr(self, 'rm_enabled_btn'):
+            self.update_checkbox_icon(self.rm_enabled_btn, self.runemaker_enabled)
     
     def create_ember_dialog(self, title, width=400, height=250):
         """Create a dialog with ember theme colors and proper focus"""
@@ -1947,6 +2351,19 @@ Pressione 'Iniciar' quando estiver pronto!"""
         delay_spinbox = ttk.Spinbox(delay_frame, from_=10, to=2000, textvariable=delay_var, width=10)
         delay_spinbox.pack(side=tk.LEFT, padx=5)
         
+        # Return to position option
+        return_frame = ttk.Frame(dialog)
+        return_frame.pack(pady=10)
+        
+        return_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(
+            return_frame,
+            text="Retornar mouse a posicao original",
+            variable=return_var
+        ).pack()
+        ttk.Label(return_frame, text="(Apos executar, volta o mouse pra onde estava)", 
+                 font=('Arial', 8), foreground='gray').pack()
+        
         def save_hotkey():
             if len(clicks_recorded) != 2:
                 messagebox.showwarning("Incomplete", "Please record both click positions!")
@@ -1956,7 +2373,8 @@ Pressione 'Iniciar' quando estiver pronto!"""
                 'hotkey': hotkey_combo,
                 'clicks': clicks_recorded,
                 'delay': delay_var.get(),
-                'type': 'normal'
+                'type': 'normal',
+                'return_to_position': return_var.get()
             }
             
             self.hotkeys.append(new_hotkey)
@@ -2475,9 +2893,55 @@ Pressione 'Iniciar' quando estiver pronto!"""
             except:
                 pass
         
-        listener = KeyboardListener(on_press=on_press, on_release=on_release)
-        listener.daemon = True
-        listener.start()
+        self.keyboard_listener = KeyboardListener(on_press=on_press, on_release=on_release)
+        self.keyboard_listener.daemon = True
+        self.keyboard_listener.start()
+        
+        # Start watchdog to monitor and restart listener if it dies (only once)
+        if not hasattr(self, 'watchdog_started') or not self.watchdog_started:
+            self.watchdog_started = True
+            self.start_listener_watchdog()
+    
+    def start_listener_watchdog(self):
+        """Monitor the keyboard listener and restart it if it stops working"""
+        def watchdog():
+            while True:
+                time.sleep(30)  # Check every 30 seconds
+                try:
+                    # Check if listener is still alive
+                    if not self.keyboard_listener.is_alive():
+                        print("[WATCHDOG] Keyboard listener died! Restarting...")
+                        self.restart_hotkey_listener()
+                except Exception as e:
+                    print(f"[WATCHDOG] Error checking listener: {e}")
+                    try:
+                        self.restart_hotkey_listener()
+                    except:
+                        pass
+        
+        watchdog_thread = threading.Thread(target=watchdog, daemon=True)
+        watchdog_thread.start()
+    
+    def restart_hotkey_listener(self):
+        """Restart the keyboard listener"""
+        try:
+            # Stop old listener if it exists
+            if hasattr(self, 'keyboard_listener') and self.keyboard_listener:
+                try:
+                    self.keyboard_listener.stop()
+                except:
+                    pass
+            
+            # Clear pressed keys state
+            self.currently_pressed = set()
+            self.triggered_hotkeys = set()
+            self.triggered_quick_keys = set()
+            
+            # Start new listener
+            self.start_hotkey_listener()
+            print("[WATCHDOG] Keyboard listener restarted successfully!")
+        except Exception as e:
+            print(f"[WATCHDOG] Failed to restart listener: {e}")
     
     def _build_combo_string(self, pressed_keys):
         """Build a combo string from currently pressed keys (e.g., 'ctrl+alt+f1')"""
@@ -2764,6 +3228,13 @@ Pressione 'Iniciar' quando estiver pronto!"""
             else:
                 # Normal: Right-click on item, then left-click on character - HUMANIZED
                 delay = hotkey_config['delay'] / 1000.0
+                return_to_position = hotkey_config.get('return_to_position', False)
+                
+                # Save original position if return_to_position is enabled
+                original_x, original_y = None, None
+                if return_to_position:
+                    original_x, original_y = pyautogui.position()
+                    print(f"🎯 Custom Hotkey: Saved original position ({original_x}, {original_y})")
                 
                 # First click - RIGHT CLICK on item position
                 x1, y1 = clicks[0]['x'], clicks[0]['y']
@@ -2795,6 +3266,15 @@ Pressione 'Iniciar' quando estiver pronto!"""
                     time.sleep(random.uniform(0.01, 0.03))
                 
                 pyautogui.leftClick(x2, y2)
+                
+                # Return to original position if enabled
+                if return_to_position and original_x is not None:
+                    if self.instant_movement.get():
+                        pyautogui.moveTo(original_x, original_y, duration=0)
+                    else:
+                        time.sleep(random.uniform(0.02, 0.05))
+                        pyautogui.moveTo(original_x, original_y, duration=random.uniform(0.04, 0.08))
+                    print(f"🔙 Custom Hotkey: Returned to ({original_x}, {original_y})")
             
         except Exception as e:
             print(f"Error executing clicks: {e}")
@@ -2902,8 +3382,12 @@ Pressione 'Iniciar' quando estiver pronto!"""
             print(f"❌ Auto EXPLO error: {e}")
     
     def execute_quick_uh(self):
-        """Execute Auto UH quick config"""
+        """Execute Auto UH quick config - returns mouse to original position"""
         try:
+            # Save original mouse position FIRST
+            original_x, original_y = pyautogui.position()
+            print(f"🎯 Auto UH: Saved original position ({original_x}, {original_y})")
+            
             quick_configs = self.config.get('quick_configs', {})
             uh_config = quick_configs.get('auto_uh', {})
             
@@ -2916,8 +3400,11 @@ Pressione 'Iniciar' quando estiver pronto!"""
             
             # Right-click on UH rune
             x1, y1 = clicks[0]['x'], clicks[0]['y']
-            pyautogui.moveTo(x1, y1, duration=0.05)
-            time.sleep(0.02)
+            if self.instant_movement.get():
+                pyautogui.moveTo(x1, y1, duration=0)
+            else:
+                pyautogui.moveTo(x1, y1, duration=random.uniform(0.04, 0.08))
+                time.sleep(random.uniform(0.01, 0.03))
             pyautogui.rightClick(x1, y1)
             print(f"⚕️ Auto UH: Right-clicked rune at ({x1}, {y1})")
             
@@ -2926,34 +3413,49 @@ Pressione 'Iniciar' quando estiver pronto!"""
             
             # Left-click on character
             x2, y2 = clicks[1]['x'], clicks[1]['y']
-            pyautogui.moveTo(x2, y2, duration=0.05)
-            time.sleep(0.02)
+            if self.instant_movement.get():
+                pyautogui.moveTo(x2, y2, duration=0)
+            else:
+                pyautogui.moveTo(x2, y2, duration=random.uniform(0.04, 0.08))
+                time.sleep(random.uniform(0.01, 0.03))
             pyautogui.leftClick(x2, y2)
             print(f"✅ Auto UH: Clicked character at ({x2}, {y2})")
+            
+            # Return mouse to original position
+            if self.instant_movement.get():
+                pyautogui.moveTo(original_x, original_y, duration=0)
+            else:
+                time.sleep(random.uniform(0.02, 0.05))
+                pyautogui.moveTo(original_x, original_y, duration=random.uniform(0.04, 0.08))
+            print(f"🔙 Auto UH: Returned to ({original_x}, {original_y})")
             
         except Exception as e:
             print(f"❌ Auto UH error: {e}")
     
     def execute_quick_mana(self):
-        """Execute Auto MANA quick config"""
+        """Execute Auto MANA quick config - returns mouse to original position"""
         try:
+            # Save original mouse position FIRST
+            original_x, original_y = pyautogui.position()
+            print(f"🎯 Auto Mana: Saved original position ({original_x}, {original_y})")
+            
             quick_configs = self.config.get('quick_configs', {})
             mana_config = quick_configs.get('auto_mana', {})
             
-            print(f"[DEBUG] Execute Auto Mana: quick_configs keys = {list(quick_configs.keys())}")
-            print(f"[DEBUG] mana_config = {mana_config}")
-            
             clicks = mana_config.get('clicks', [])
             if len(clicks) < 2:
-                print(f"⚠️ Auto Mana: Posições não gravadas! Use 'Gravar' primeiro. (clicks={clicks})")
+                print(f"⚠️ Auto Mana: Posições não gravadas! Use 'Gravar' primeiro.")
                 return
             
             delay = mana_config.get('delay', 100) / 1000.0
             
             # Right-click on MANA potion
             x1, y1 = clicks[0]['x'], clicks[0]['y']
-            pyautogui.moveTo(x1, y1, duration=0.05)
-            time.sleep(0.02)
+            if self.instant_movement.get():
+                pyautogui.moveTo(x1, y1, duration=0)
+            else:
+                pyautogui.moveTo(x1, y1, duration=random.uniform(0.04, 0.08))
+                time.sleep(random.uniform(0.01, 0.03))
             pyautogui.rightClick(x1, y1)
             print(f"💙 Auto Mana: Right-clicked potion at ({x1}, {y1})")
             
@@ -2962,10 +3464,21 @@ Pressione 'Iniciar' quando estiver pronto!"""
             
             # Left-click on character
             x2, y2 = clicks[1]['x'], clicks[1]['y']
-            pyautogui.moveTo(x2, y2, duration=0.05)
-            time.sleep(0.02)
+            if self.instant_movement.get():
+                pyautogui.moveTo(x2, y2, duration=0)
+            else:
+                pyautogui.moveTo(x2, y2, duration=random.uniform(0.04, 0.08))
+                time.sleep(random.uniform(0.01, 0.03))
             pyautogui.leftClick(x2, y2)
             print(f"✅ Auto Mana: Clicked character at ({x2}, {y2})")
+            
+            # Return mouse to original position
+            if self.instant_movement.get():
+                pyautogui.moveTo(original_x, original_y, duration=0)
+            else:
+                time.sleep(random.uniform(0.02, 0.05))
+                pyautogui.moveTo(original_x, original_y, duration=random.uniform(0.04, 0.08))
+            print(f"🔙 Auto Mana: Returned to ({original_x}, {original_y})")
             
         except Exception as e:
             print(f"❌ Auto Mana error: {e}")
